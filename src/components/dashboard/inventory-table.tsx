@@ -8,7 +8,7 @@ import {
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "../ui/scroll-area";
-import type { InventoryItem } from "@/lib/data";
+import type { InventoryItem } from "@/lib/types";
 import { getStatus } from "@/lib/utils";
 import { AnimatePresence, motion } from "framer-motion";
 import { Star } from "lucide-react";
@@ -70,8 +70,4 @@ export function InventoryTable({ inventory }: InventoryTableProps) {
                </TableRow>
             )}
           </AnimatePresence>
-        </TableBody>
-      </Table>
-    </ScrollArea>
-  );
-}
+        

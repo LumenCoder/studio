@@ -1,7 +1,9 @@
 "use client";
 
-import { useState, useMemo } from "react";
-import { inventoryData as initialInventoryData, type InventoryItem } from "@/lib/data";
+import { useState, useMemo, useEffect } from "react";
+import type { InventoryItem } from "@/lib/types";
+import { db } from "@/lib/firebase";
+import { collection, onSnapshot, addDoc, writeBatch, serverTimestamp } from "firebase/firestore";
 import { InventoryTable } from "./inventory-table";
 import { AuditLog } from "./audit-log";
 import { PredictionTool } from "./prediction-tool";
@@ -9,49 +11,101 @@ import { BudgetOverview } from "./budget-overview";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../ui/card";
 import { InventoryActions } from "./inventory-actions";
 import { Button } from "../ui/button";
-import { RefreshCw } from "lucide-react";
+import { RefreshCw, Loader2 } from "lucide-react";
 import { getStatus } from "@/lib/utils";
 import { InventoryUpdateModal } from "./inventory-update-modal";
+import { useToast } from "@/hooks/use-toast";
+
+const ALL_CATEGORIES = ['Protein', 'Dairy', 'Produce', 'Sauce', 'Tortilla', 'Packaging', 'Drink'];
 
 export function InventoryManagement() {
-  const [inventory, setInventory] = useState<InventoryItem[]>(initialInventoryData);
+  const [inventory, setInventory] = useState<InventoryItem[]>([]);
+  const [loading, setLoading] = useState(true);
   const [isUpdateDay, setIsUpdateDay] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [categoryFilter, setCategoryFilter] = useState("All");
   const [statusFilter, setStatusFilter] = useState("All");
   const [isUpdateModalOpen, setIsUpdateModalOpen] = useState(false);
+  const { toast } = useToast();
 
-  useState(() => {
+  useEffect(() => {
     const today = new Date().getDay();
     // Monday is 1, Thursday is 4
     if (today === 1 || today === 4) {
       setIsUpdateDay(true);
     }
-  });
+    
+    const unsubscribe = onSnapshot(collection(db, "inventory"), (snapshot) => {
+      const inventoryData = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as InventoryItem));
+      setInventory(inventoryData);
+      setLoading(false);
+    });
 
-  const handleAddItem = (newItem: InventoryItem) => {
-    setInventory((prevInventory) => [newItem, ...prevInventory]);
+    return () => unsubscribe();
+  }, []);
+
+  const handleAddItem = async (newItem: Omit<InventoryItem, 'id'>) => {
+    try {
+      await addDoc(collection(db, "inventory"), newItem);
+      await addDoc(collection(db, "auditLogs"), {
+        user: "Admin User", // Replace with actual user later
+        action: "added_item",
+        item: newItem.name,
+        timestamp: serverTimestamp(),
+      });
+    } catch (error) {
+      console.error("Error adding item:", error);
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "Failed to add new item.",
+      });
+    }
   };
 
-  const handleUpdateInventory = (updatedItems: InventoryItem[]) => {
-    setInventory(updatedItems);
+  const handleUpdateInventory = async (updatedItems: Record<string, number>) => {
+    const batch = writeBatch(db);
+    const updatedItemNames: string[] = [];
+
+    inventory.forEach(item => {
+      if (updatedItems[item.id] !== undefined && item.stock !== updatedItems[item.id]) {
+        const docRef = doc(db, "inventory", item.id);
+        batch.update(docRef, { stock: updatedItems[item.id] });
+        updatedItemNames.push(item.name);
+      }
+    });
+
+    if (updatedItemNames.length > 0) {
+       try {
+        await batch.commit();
+        await addDoc(collection(db, "auditLogs"), {
+            user: "Admin User", // Replace with actual user
+            action: "updated_stock",
+            item: `${updatedItemNames.length} items`,
+            timestamp: serverTimestamp(),
+        });
+        toast({
+            title: "Inventory Updated",
+            description: "Stock levels have been successfully updated.",
+        });
+      } catch (error) {
+        console.error("Error updating inventory:", error);
+        toast({
+            variant: "destructive",
+            title: "Error",
+            description: "Failed to update inventory.",
+        });
+      }
+    }
   };
   
-  const categories = useMemo(() => [...new Set(initialInventoryData.map(item => item.category))], []);
-
   const filteredInventory = useMemo(() => {
     return inventory
       .filter(item => {
-        // Search filter
         const matchesSearch = item.name.toLowerCase().includes(searchQuery.toLowerCase());
-
-        // Category filter
         const matchesCategory = categoryFilter === 'All' || item.category === categoryFilter;
-
-        // Status filter
         const status = getStatus(item.stock, item.threshold).label;
         const matchesStatus = statusFilter === 'All' || status === statusFilter;
-
         return matchesSearch && matchesCategory && matchesStatus;
       });
   }, [inventory, searchQuery, categoryFilter, statusFilter]);
@@ -77,6 +131,7 @@ export function InventoryManagement() {
                       size="sm" 
                       onClick={() => setIsUpdateModalOpen(true)}
                       aria-label="Update Inventory"
+                      disabled={loading}
                     >
                       <RefreshCw className="mr-2 h-4 w-4" />
                       Update Inventory
@@ -91,11 +146,17 @@ export function InventoryManagement() {
                     setCategoryFilter={setCategoryFilter}
                     statusFilter={statusFilter}
                     setStatusFilter={setStatusFilter}
-                    categories={categories}
+                    categories={ALL_CATEGORIES}
                   />
                 </CardHeader>
                 <CardContent>
-                  <InventoryTable inventory={filteredInventory} />
+                  {loading ? (
+                    <div className="flex justify-center items-center h-[480px]">
+                      <Loader2 className="h-8 w-8 animate-spin" />
+                    </div>
+                  ) : (
+                    <InventoryTable inventory={filteredInventory} />
+                  )}
                 </CardContent>
               </Card>
           </div>
@@ -104,11 +165,4 @@ export function InventoryManagement() {
           </div>
           <div className="col-span-1 lg:col-span-4 space-y-6">
             <div className="grid gap-6 md:grid-cols-2">
-              <BudgetOverview />
-              <AuditLog />
-            </div>
-          </div>
-        </div>
-    </>
-  );
-}
+              <BudgetOverview

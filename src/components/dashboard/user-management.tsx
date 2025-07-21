@@ -5,9 +5,11 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { useToast } from "@/hooks/use-toast";
-import { userData as initialUserData, type User } from "@/lib/data";
+import type { User } from "@/lib/types";
 import { format } from "date-fns";
 import { motion } from "framer-motion";
+import { db } from "@/lib/firebase";
+import { collection, addDoc, onSnapshot, serverTimestamp } from "firebase/firestore";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -19,8 +21,8 @@ import { UserPlus, Users, Loader2 } from "lucide-react";
 
 const userFormSchema = z.object({
   name: z.string().min(2, { message: "Name must be at least 2 characters." }),
-  userNumber: z.string().regex(/^\d{1,4}$/, { message: "User number must be between 1 and 4 digits." }),
-  password: z.string().regex(/^\d{4}$/, { message: "Password must be exactly 4 digits." }),
+  id: z.string().regex(/^\d{1,4}$/, { message: "User number must be between 1 and 4 digits." }),
+  pin: z.string().regex(/^\d{4}$/, { message: "Password must be exactly 4 digits." }),
   role: z.enum(["Team Training", "Manager", "Admin Manager"], {
     required_error: "You need to select a user role.",
   }),
@@ -32,53 +34,60 @@ type FormattedUser = Omit<User, 'lastLogin'> & {
 
 export function UserManagement() {
   const { toast } = useToast();
-  const [users, setUsers] = useState<User[]>(initialUserData);
+  const [users, setUsers] = useState<User[]>([]);
   const [formattedUsers, setFormattedUsers] = useState<FormattedUser[]>([]);
   const [isLoading, setIsLoading] = useState(false);
-  const [isClient, setIsClient] = useState(false);
+  const [isUsersLoading, setIsUsersLoading] = useState(true);
 
   useEffect(() => {
-    setIsClient(true);
-  }, []);
-
-  useEffect(() => {
-    if (isClient) {
-        const newFormattedUsers = users.map(user => ({
+    const unsubscribe = onSnapshot(collection(db, "users"), (snapshot) => {
+      const usersData = snapshot.docs.map(doc => ({ ...doc.data(), id: doc.id } as User));
+      setUsers(usersData);
+      const newFormattedUsers = usersData.map(user => ({
         ...user,
-        lastLogin: format(user.lastLogin, "PPP"),
-        }));
-        setFormattedUsers(newFormattedUsers);
-    }
-  }, [users, isClient]);
+        lastLogin: user.lastLogin ? format(user.lastLogin.toDate(), "PPP") : 'N/A',
+      }));
+      setFormattedUsers(newFormattedUsers);
+      setIsUsersLoading(false);
+    });
 
+    return () => unsubscribe();
+  }, []);
 
   const form = useForm<z.infer<typeof userFormSchema>>({
     resolver: zodResolver(userFormSchema),
     defaultValues: {
       name: "",
-      userNumber: "",
-      password: "",
+      id: "",
+      pin: "",
       role: "Team Training",
     },
   });
 
-  function onSubmit(values: z.infer<typeof userFormSchema>) {
+  async function onSubmit(values: z.infer<typeof userFormSchema>) {
     setIsLoading(true);
-    setTimeout(() => {
-      const newUser: User = {
-        id: values.userNumber,
+    try {
+      await addDoc(collection(db, "users"), {
+        id: values.id,
         name: values.name,
         role: values.role,
-        lastLogin: new Date(),
-      };
-      setUsers(prevUsers => [...prevUsers, newUser]);
+        pin: values.pin, // In a real app, this should be hashed.
+        lastLogin: serverTimestamp(),
+      });
       toast({
         title: "User Created",
         description: `${values.name} has been added as a new user.`,
       });
       form.reset();
-      setIsLoading(false);
-    }, 1000);
+    } catch (error) {
+        console.error("Error creating user: ", error);
+        toast({
+            variant: "destructive",
+            title: "Error",
+            description: "Could not create user. User number may already exist.",
+        });
+    }
+    setIsLoading(false);
   }
 
   const tableVariants = {
@@ -123,7 +132,7 @@ export function UserManagement() {
                 />
                  <FormField
                   control={form.control}
-                  name="userNumber"
+                  name="id"
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>User Number (1-4 digits)</FormLabel>
@@ -136,7 +145,7 @@ export function UserManagement() {
                 />
                 <FormField
                   control={form.control}
-                  name="password"
+                  name="pin"
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>Password (4 digits)</FormLabel>
@@ -189,6 +198,7 @@ export function UserManagement() {
             </CardDescription>
           </CardHeader>
           <CardContent>
+            {isUsersLoading ? <Loader2 className="mx-auto h-8 w-8 animate-spin"/> : 
             <Table>
               <TableHeader>
                 <TableRow>
@@ -204,7 +214,7 @@ export function UserManagement() {
                 animate="visible"
                 className="[&_tr:last-child]:border-0"
               >
-                {isClient ? formattedUsers.map((user) => (
+                {formattedUsers.map((user) => (
                   <motion.tr
                     key={user.id}
                     variants={rowVariants}
@@ -215,19 +225,8 @@ export function UserManagement() {
                     <TableCell>{user.role}</TableCell>
                     <TableCell>{user.lastLogin}</TableCell>
                   </motion.tr>
-                )) : users.map(user => (
-                  <TableRow key={user.id}>
-                    <TableCell className="font-medium">{user.id}</TableCell>
-                    <TableCell>{user.name}</TableCell>
-                    <TableCell>{user.role}</TableCell>
-                    <TableCell>Loading...</TableCell>
-                  </TableRow>
                 ))}
               </motion.tbody>
             </Table>
+            }
           </CardContent>
-        </Card>
-      </div>
-    </div>
-  );
-}

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -42,54 +42,81 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
-import { Separator } from "@/components/ui/separator";
 import { Trash2, Edit, Save, DollarSign, BarChart, FileSpreadsheet, Loader2 } from "lucide-react";
-import { userData as initialUsers, type User, inventoryData, budgetData as initialBudgetData } from "@/lib/data";
+import type { User, InventoryItem } from "@/lib/types";
 import { runShipmentCalculation, type ShipmentCalculationOutput } from "@/lib/actions";
+import { db } from "@/lib/firebase";
+import { collection, doc, onSnapshot, deleteDoc, setDoc, getDocs, writeBatch } from "firebase/firestore";
 
 const budgetSchema = z.object({
   budget: z.coerce.number().positive("Budget must be positive."),
   overstockThreshold: z.coerce.number().min(1, "Threshold must be at least 1."),
 });
 
-const shipmentSchema = z.object({
-  prompt: z.string(), // Hidden field for the AI prompt
-});
-
 export function ManagerSetup() {
   const { toast } = useToast();
-  const [users, setUsers] = useState(initialUsers);
-  const [budgetData, setBudgetData] = useState(initialBudgetData);
-  const [editingUserId, setEditingUserId] = useState<string | null>(null);
+  const [users, setUsers] = useState<User[]>([]);
+  const [inventory, setInventory] = useState<InventoryItem[]>([]);
+  const [budgetData, setBudgetData] = useState({ budget: 0, overstockThreshold: 3 });
   const [shipmentResult, setShipmentResult] = useState<ShipmentCalculationOutput | null>(null);
   const [isCalculating, setIsCalculating] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
 
   const budgetForm = useForm<z.infer<typeof budgetSchema>>({
     resolver: zodResolver(budgetSchema),
-    defaultValues: {
-      budget: budgetData.budget,
-      overstockThreshold: 3, // Default overstock multiplier
-    },
+    values: budgetData,
   });
 
-  const shipmentForm = useForm({
-    defaultValues: { prompt: '' },
-  });
-
-
-  const handleUpdateBudget = (values: z.infer<typeof budgetSchema>) => {
-    setBudgetData((prev) => ({ ...prev, budget: values.budget }));
-    // Here you would also update inventory overstock logic if needed
-    toast({
-      title: "Settings Updated",
-      description: "Budget and overstock settings have been saved.",
+  useEffect(() => {
+    const unsubUsers = onSnapshot(collection(db, "users"), (snapshot) => {
+      setUsers(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as User)));
+      setIsLoading(false);
     });
+
+    const unsubBudget = onSnapshot(doc(db, "settings", "budget"), (docSnap) => {
+      if (docSnap.exists()) {
+        const data = docSnap.data();
+        const newBudgetData = {
+          budget: data.budget || 0,
+          overstockThreshold: data.overstockThreshold || 3,
+        };
+        setBudgetData(newBudgetData);
+        budgetForm.reset(newBudgetData);
+      }
+      setIsLoading(false);
+    });
+
+    const unsubInventory = onSnapshot(collection(db, "inventory"), (snapshot) => {
+      setInventory(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as InventoryItem)));
+    });
+
+    return () => {
+      unsubUsers();
+      unsubBudget();
+      unsubInventory();
+    };
+  }, [budgetForm]);
+
+  const handleUpdateBudget = async (values: z.infer<typeof budgetSchema>) => {
+    try {
+      await setDoc(doc(db, "settings", "budget"), values, { merge: true });
+      toast({
+        title: "Settings Updated",
+        description: "Budget and overstock settings have been saved.",
+      });
+    } catch (error) {
+      toast({
+        variant: "destructive",
+        title: "Update Failed",
+        description: "Could not save settings.",
+      });
+    }
   };
 
   const handleCalculateShipment = async () => {
     setIsCalculating(true);
     setShipmentResult(null);
-    const inventoryList = inventoryData.map(item => `${item.name}, Stock: ${item.stock}, Threshold: ${item.threshold}`).join('\n');
+    const inventoryList = inventory.map(item => `${item.name}, Stock: ${item.stock}, Threshold: ${item.threshold}`).join('\n');
     const result = await runShipmentCalculation({ inventoryList });
 
     if ('error' in result) {
@@ -104,24 +131,30 @@ export function ManagerSetup() {
     setIsCalculating(false);
   };
 
-  const deleteUser = (userId: string) => {
-    setUsers(users.filter(user => user.id !== userId));
-    toast({
-        title: "User Deleted",
-        description: `User with ID ${userId} has been removed.`,
-    });
+  const handleDeleteUser = async (userId: string) => {
+    try {
+      await deleteDoc(doc(db, "users", userId));
+      toast({
+          title: "User Deleted",
+          description: `User with ID ${userId} has been removed.`,
+      });
+    } catch (error) {
+      toast({
+        variant: "destructive",
+        title: "Delete Failed",
+        description: "Could not delete user.",
+      });
+    }
   };
 
   return (
     <div className="grid gap-6 lg:grid-cols-2">
-      {/* Settings Card */}
       <Card>
         <CardHeader>
           <CardTitle>Global Settings</CardTitle>
           <CardDescription>Manage budget and inventory thresholds.</CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
-          {/* Budget Form */}
           <Form {...budgetForm}>
             <form onSubmit={budgetForm.handleSubmit(handleUpdateBudget)} className="space-y-4">
               <div className="flex items-center gap-2">
@@ -168,7 +201,6 @@ export function ManagerSetup() {
         </CardContent>
       </Card>
       
-      {/* Shipment Calculator */}
       <Card>
         <CardHeader>
             <CardTitle>Shipment Calculator</CardTitle>
@@ -192,7 +224,6 @@ export function ManagerSetup() {
         </CardContent>
       </Card>
 
-      {/* User Management Table */}
       <div className="lg:col-span-2">
         <Card>
           <CardHeader>
@@ -200,52 +231,54 @@ export function ManagerSetup() {
             <CardDescription>Delete or update existing users.</CardDescription>
           </CardHeader>
           <CardContent>
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>User ID</TableHead>
-                  <TableHead>Name</TableHead>
-                  <TableHead>Role</TableHead>
-                  <TableHead className="text-right">Actions</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {users.map((user) => (
-                  <TableRow key={user.id}>
-                    <TableCell>{user.id}</TableCell>
-                    <TableCell>{user.name}</TableCell>
-                    <TableCell>{user.role}</TableCell>
-                    <TableCell className="text-right space-x-2">
-                        <Button variant="ghost" size="icon" disabled>
-                           <Edit className="h-4 w-4" />
-                           <span className="sr-only">Edit User (Coming Soon)</span>
-                        </Button>
-                        <AlertDialog>
-                            <AlertDialogTrigger asChild>
-                                <Button variant="destructive" size="icon" disabled={user.role === 'Admin Manager'}>
-                                    <Trash2 className="h-4 w-4" />
-                                </Button>
-                            </AlertDialogTrigger>
-                            <AlertDialogContent>
-                                <AlertDialogHeader>
-                                    <AlertDialogTitle>Are you sure?</AlertDialogTitle>
-                                    <AlertDialogDescription>
-                                        This action cannot be undone. This will permanently delete the user account for {user.name}.
-                                    </AlertDialogDescription>
-                                </AlertDialogHeader>
-                                <AlertDialogFooter>
-                                    <AlertDialogCancel>Cancel</AlertDialogCancel>
-                                    <AlertDialogAction onClick={() => deleteUser(user.id)}>
-                                        Delete
-                                    </AlertDialogAction>
-                                </AlertDialogFooter>
-                            </AlertDialogContent>
-                        </AlertDialog>
-                    </TableCell>
+             {isLoading ? <Loader2 className="mx-auto h-8 w-8 animate-spin" /> :
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>User ID</TableHead>
+                    <TableHead>Name</TableHead>
+                    <TableHead>Role</TableHead>
+                    <TableHead className="text-right">Actions</TableHead>
                   </TableRow>
-                ))}
-              </TableBody>
-            </Table>
+                </TableHeader>
+                <TableBody>
+                  {users.map((user) => (
+                    <TableRow key={user.id}>
+                      <TableCell>{user.id}</TableCell>
+                      <TableCell>{user.name}</TableCell>
+                      <TableCell>{user.role}</TableCell>
+                      <TableCell className="text-right space-x-2">
+                          <Button variant="ghost" size="icon" disabled>
+                            <Edit className="h-4 w-4" />
+                            <span className="sr-only">Edit User (Coming Soon)</span>
+                          </Button>
+                          <AlertDialog>
+                              <AlertDialogTrigger asChild>
+                                  <Button variant="destructive" size="icon" disabled={user.role === 'Admin Manager'}>
+                                      <Trash2 className="h-4 w-4" />
+                                  </Button>
+                              </AlertDialogTrigger>
+                              <AlertDialogContent>
+                                  <AlertDialogHeader>
+                                      <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+                                      <AlertDialogDescription>
+                                          This action cannot be undone. This will permanently delete the user account for {user.name}.
+                                      </AlertDialogDescription>
+                                  </AlertDialogHeader>
+                                  <AlertDialogFooter>
+                                      <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                      <AlertDialogAction onClick={() => handleDeleteUser(user.id)}>
+                                          Delete
+                                      </AlertDialogAction>
+                                  </AlertDialogFooter>
+                              </AlertDialogContent>
+                          </AlertDialog>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+             }
           </CardContent>
         </Card>
       </div>

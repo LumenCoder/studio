@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useMemo } from 'react';
-import type { InventoryItem } from '@/lib/data';
+import type { InventoryItem } from '@/lib/types';
 import {
   Dialog,
   DialogContent,
@@ -16,7 +16,6 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Progress } from '@/components/ui/progress';
-import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -24,12 +23,11 @@ type InventoryUpdateModalProps = {
   isOpen: boolean;
   setIsOpen: (isOpen: boolean) => void;
   inventory: InventoryItem[];
-  onUpdate: (updatedInventory: InventoryItem[]) => void;
+  onUpdate: (updatedStocks: Record<string, number>) => void;
 };
 
 export function InventoryUpdateModal({ isOpen, setIsOpen, inventory, onUpdate }: InventoryUpdateModalProps) {
   const [updatedStocks, setUpdatedStocks] = useState<Record<string, number>>({});
-  const { toast } = useToast();
 
   useEffect(() => {
     if (isOpen) {
@@ -51,15 +49,7 @@ export function InventoryUpdateModal({ isOpen, setIsOpen, inventory, onUpdate }:
   };
 
   const handleSaveChanges = () => {
-    const updatedInventory = inventory.map(item => ({
-      ...item,
-      stock: updatedStocks[item.id] ?? item.stock,
-    }));
-    onUpdate(updatedInventory);
-    toast({
-      title: 'Inventory Updated',
-      description: 'Stock levels have been successfully updated.',
-    });
+    onUpdate(updatedStocks);
     setIsOpen(false);
   };
 

@@ -2,30 +2,37 @@
 
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, ResponsiveContainer } from 'recharts';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { inventoryData as initialInventoryData } from '@/lib/data';
 import { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
-import { Package, TrendingDown, TrendingUp } from 'lucide-react';
+import { Package, TrendingDown, TrendingUp, Loader2 } from 'lucide-react';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
-import type { InventoryItem } from '@/lib/data';
+import type { InventoryItem } from '@/lib/types';
+import { collection, onSnapshot } from 'firebase/firestore';
+import { db } from '@/lib/firebase';
+import { Skeleton } from '../ui/skeleton';
 
 export function StockOverview() {
-  const [isMounted, setIsMounted] = useState(false);
-  const [inventoryData, setInventoryData] = useState<InventoryItem[]>(initialInventoryData);
+  const [inventory, setInventory] = useState<InventoryItem[]>([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    setIsMounted(true);
+    const unsubscribe = onSnapshot(collection(db, "inventory"), (snapshot) => {
+      const inventoryData = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as InventoryItem));
+      setInventory(inventoryData);
+      setLoading(false);
+    });
+    return () => unsubscribe();
   }, []);
 
-  const totalStock = inventoryData.reduce((acc, item) => acc + item.stock, 0);
-  const lowStockItems = inventoryData.filter(item => item.stock < item.threshold);
-  const overStockItems = inventoryData.filter(item => item.stock > item.threshold * 3).length;
+  const totalStock = inventory.reduce((acc, item) => acc + item.stock, 0);
+  const lowStockItems = inventory.filter(item => item.stock < item.threshold);
+  const overStockItems = inventory.filter(item => item.stock > item.threshold * 3).length;
 
-  const chartData = inventoryData.map(item => ({
+  const chartData = inventory.map(item => ({
     name: item.name,
     stock: item.stock,
     threshold: item.threshold,
-  })).slice(0, 7); // Show first 7 items for brevity
+  })).slice(0, 7);
 
   const containerVariants = {
     hidden: { opacity: 0 },
@@ -48,10 +55,19 @@ export function StockOverview() {
       },
     },
   };
-
-  if (!isMounted) {
-    return null; // or a loading skeleton
-  }
+  
+  const StatCardSkeleton = () => (
+    <Card>
+      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+        <Skeleton className="h-4 w-1/3" />
+        <Skeleton className="h-4 w-4 rounded-sm" />
+      </CardHeader>
+      <CardContent>
+        <Skeleton className="h-7 w-1/2" />
+        <Skeleton className="h-3 w-2/3 mt-1" />
+      </CardContent>
+    </Card>
+  )
 
   return (
     <motion.div
@@ -65,6 +81,13 @@ export function StockOverview() {
             <p className="text-muted-foreground">Here's your inventory at a glance.</p>
         </motion.div>
 
+        {loading ? (
+            <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+                <StatCardSkeleton/>
+                <StatCardSkeleton/>
+                <StatCardSkeleton/>
+            </div>
+        ) : (
         <motion.div variants={containerVariants} className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
             <motion.div variants={itemVariants}>
             <Card>
@@ -122,6 +145,7 @@ export function StockOverview() {
             </Card>
             </motion.div>
         </motion.div>
+        )}
 
         <motion.div variants={itemVariants}>
             <Card>
@@ -130,6 +154,11 @@ export function StockOverview() {
                 <CardDescription>A snapshot of your current inventory items.</CardDescription>
             </CardHeader>
             <CardContent>
+                {loading ? (
+                    <div className="flex justify-center items-center h-[350px]">
+                      <Loader2 className="h-8 w-8 animate-spin" />
+                    </div>
+                ): (
                 <ResponsiveContainer width="100%" height={350}>
                 <BarChart data={chartData}>
                     <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
@@ -147,9 +176,3 @@ export function StockOverview() {
                     <Bar dataKey="threshold" fill="hsl(var(--destructive))" radius={[4, 4, 0, 0]} />
                 </BarChart>
                 </ResponsiveContainer>
-            </CardContent>
-            </Card>
-        </motion.div>
-    </motion.div>
-  );
-}

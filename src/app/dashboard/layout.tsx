@@ -39,7 +39,12 @@ export default function DashboardLayout({
 }) {
   return (
     <AppProvider>
-      <DashboardLayoutContent>{children}</DashboardLayoutContent>
+      <div className="flex">
+        <AppSidebar />
+        <SidebarProvider>
+          <DashboardLayoutContent>{children}</DashboardLayoutContent>
+        </SidebarProvider>
+      </div>
     </AppProvider>
   );
 }
@@ -48,41 +53,36 @@ function DashboardLayoutContent({ children }: { children: React.ReactNode }) {
   const { isNavigating } = useAppContext();
 
   return (
-    <SidebarProvider>
-      <div className="relative">
-        <div
-          className={`transition-filter duration-700 flex ${
-            isNavigating ? 'blur-sm' : 'blur-0'
-          }`}
-        >
-          <AppSidebar />
-          <SidebarInset>
-            <Header />
-            {children}
-          </SidebarInset>
-        </div>
+    <SidebarInset>
+        <div className="relative flex-1">
+          <div
+            className={`transition-filter duration-700 ${
+              isNavigating ? 'blur-sm' : 'blur-0'
+            }`}
+          >
+              <Header />
+              {children}
+          </div>
 
-        <AnimatePresence>
-          {isNavigating && (
-            <motion.div
-              className="absolute inset-0 z-50 flex items-center justify-center bg-background/50"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              transition={{ duration: 0.5 }}
-            >
+          <AnimatePresence>
+            {isNavigating && (
               <motion.div
-                initial={{ scale: 0.5, opacity: 0 }}
-                animate={{ scale: 1, opacity: 1, rotate: [0, -15, 15, 0], transition: { yoyo: Infinity, duration: 1 } }}
-                exit={{ scale: 0.5, opacity: 0 }}
-                transition={{ duration: 0.5, ease: 'easeInOut' }}
+                className="absolute inset-0 z-50 flex items-center justify-center bg-background/50"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 0.5 }}
               >
-                <TacoIcon className="h-24 w-24 text-primary" />
+                <motion.div
+                  initial={{ scale: 0.5, opacity: 0 }}
+                  animate={{ scale: 1, opacity: 1, rotate: [0, -15, 15, 0], transition: { yoyo: Infinity, duration: 1 } }}
+                  exit={{ scale: 0.5, opacity: 0 }}
+                  transition={{ duration: 0.5, ease: 'easeInOut' }}
+                >
+                  <TacoIcon className="h-24 w-24 text-primary" />
+                </motion.div>
               </motion.div>
-            </motion.div>
-          )}
-        </AnimatePresence>
-      </div>
-    </SidebarProvider>
-  );
-}
+            )}
+          </AnimatePresence>
+        </div>
+    </SidebarInset>

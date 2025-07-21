@@ -18,7 +18,7 @@ import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import type { InventoryItem } from "@/lib/data";
+import type { InventoryItem } from "@/lib/types";
 import {
   Select,
   SelectContent,
@@ -40,7 +40,7 @@ const itemSchema = z.object({
 });
 
 type InventoryActionsProps = {
-  onAddItem: (newItem: InventoryItem) => void;
+  onAddItem: (newItem: Omit<InventoryItem, 'id'>) => void;
   searchQuery: string;
   setSearchQuery: (query: string) => void;
   categoryFilter: string;
@@ -73,14 +73,10 @@ export function InventoryActions({
   });
 
   const onSubmit = (values: z.infer<typeof itemSchema>) => {
-    const newItem: InventoryItem = {
-      id: Date.now().toString(), // Use a more robust ID in a real app
-      ...values,
-    };
-    onAddItem(newItem);
+    onAddItem(values);
     toast({
       title: "Item Added",
-      description: `${newItem.name} has been successfully added to the inventory.`,
+      description: `${values.name} has been successfully added to the inventory.`,
     });
     setOpen(false);
     form.reset();
@@ -250,9 +246,4 @@ export function InventoryActions({
                   <Button type="submit">Save changes</Button>
               </DialogFooter>
             </form>
-          </Form>
-        </DialogContent>
-      </Dialog>
-    </div>
-  );
-}
+          </Form

@@ -5,10 +5,52 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
-import { budgetData } from "@/lib/data";
 import { DollarSign } from "lucide-react";
+import { useEffect, useState } from "react";
+import { doc, onSnapshot } from "firebase/firestore";
+import { db } from "@/lib/firebase";
+import { Skeleton } from "../ui/skeleton";
+
+type BudgetData = {
+  budget: number;
+  spent: number;
+  period: string;
+}
 
 export function BudgetOverview() {
+  const [budgetData, setBudgetData] = useState<BudgetData | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const docRef = doc(db, "settings", "budget");
+    const unsubscribe = onSnapshot(docRef, (docSnap) => {
+      if (docSnap.exists()) {
+        setBudgetData(docSnap.data() as BudgetData);
+      }
+      setLoading(false);
+    });
+    return () => unsubscribe();
+  }, []);
+
+  if (loading || !budgetData) {
+    return (
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <DollarSign className="w-6 h-6" />
+            Budget Overview
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-2">
+          <Skeleton className="h-4 w-1/2" />
+          <Skeleton className="h-6 w-3/4" />
+          <Skeleton className="h-2 w-full mt-4" />
+          <Skeleton className="h-3 w-2/3 mt-2" />
+        </CardContent>
+      </Card>
+    )
+  }
+
   const percentage = (budgetData.spent / budgetData.budget) * 100;
 
   return (
@@ -38,6 +80,4 @@ export function BudgetOverview() {
             : "Budget is within normal range."}
         </p>
       </CardContent>
-    </Card>
-  );
-}
+    </Card
