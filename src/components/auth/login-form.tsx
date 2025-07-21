@@ -53,6 +53,8 @@ export function LoginForm({ onLoginStart, onLoginResult }: LoginFormProps) {
     setTimeout(() => {
       if (values.userId === "25" && values.pin === "2525") {
         onLoginResult(true);
+        // It's good practice to reset loading state even on success
+        setIsLoading(false); 
       } else {
         toast({
           variant: "destructive",
