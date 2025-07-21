@@ -39,12 +39,12 @@ export default function DashboardLayout({
 }) {
   return (
     <AppProvider>
-      <div className="flex">
-        <AppSidebar />
-        <SidebarProvider>
+      <SidebarProvider>
+        <div className="flex">
+          <AppSidebar />
           <DashboardLayoutContent>{children}</DashboardLayoutContent>
-        </SidebarProvider>
-      </div>
+        </div>
+      </SidebarProvider>
     </AppProvider>
   );
 }
