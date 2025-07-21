@@ -80,4 +80,6 @@ export function BudgetOverview() {
             : "Budget is within normal range."}
         </p>
       </CardContent>
-    </Card
+    </Card>
+  );
+}
