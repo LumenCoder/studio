@@ -10,7 +10,7 @@ import {
   SidebarFooter,
   SidebarTitle,
 } from "@/components/ui/sidebar";
-import { LogoIcon } from "@/components/icons";
+import { TacoIcon } from "@/components/icons";
 import { Separator } from "@/components/ui/separator";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
@@ -53,8 +53,8 @@ export function AppSidebar() {
   return (
     <Sidebar>
       <SidebarHeader>
-        <LogoIcon className="w-8 h-8 text-primary" />
-        <SidebarTitle>Lumen</SidebarTitle>
+        <TacoIcon className="w-8 h-8 text-primary" />
+        <SidebarTitle>Taco Vision</SidebarTitle>
       </SidebarHeader>
       <SidebarContent>
         <SidebarMenu>

@@ -1,7 +1,7 @@
 "use client";
 
 import { LoginForm } from "@/components/auth/login-form";
-import { LogoIcon } from "@/components/icons";
+import { TacoIcon } from "@/components/icons";
 import { motion, AnimatePresence } from "framer-motion";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
@@ -21,7 +21,7 @@ export default function LoginPage() {
       setAnimationState("success");
       setTimeout(() => {
         router.push("/dashboard");
-      }, 1000); // Wait for animation to finish before navigating
+      }, 700); // Wait for fade out animation
     } else {
       setAnimationState("fail");
       setTimeout(() => setAnimationState("idle"), 1000); // Return to idle after fail animation
@@ -32,23 +32,25 @@ export default function LoginPage() {
     idle: {
       y: 0,
       scale: 1,
+      opacity: 1,
       transition: { type: "spring", stiffness: 100, damping: 15 },
     },
     loading: {
-      y: "35vh",
+      y: "30vh",
       scale: 1.5,
+      opacity: 1,
       transition: { type: "spring", stiffness: 100, damping: 15 },
     },
     success: {
-        y: -50,
-        x: -120,
-        scale: 0.3,
-        opacity: 1,
-        transition: { duration: 0.7, ease: "easeInOut" },
+        y: "30vh",
+        scale: 1.5,
+        opacity: 0,
+        transition: { duration: 0.5, ease: "easeOut" },
     },
     fail: {
       y: 0,
       scale: 1,
+      opacity: 1,
       transition: { type: "spring", stiffness: 100, damping: 15 },
     },
   };
@@ -56,18 +58,22 @@ export default function LoginPage() {
   const pageVariants = {
     idle: {
         filter: "blur(0px)",
+        opacity: 1,
         transition: { duration: 0.5 },
     },
     loading: {
         filter: "blur(8px)",
+        opacity: 0.8,
         transition: { duration: 0.5 },
     },
     success: {
-        filter: "blur(0px)",
+        filter: "blur(8px)",
+        opacity: 0,
         transition: { duration: 0.7 },
     },
     fail: {
         filter: "blur(0px)",
+        opacity: 1,
         transition: { duration: 0.5 },
     },
   };
@@ -75,15 +81,13 @@ export default function LoginPage() {
 
   return (
     <div className="relative min-h-screen overflow-hidden">
-      <AnimatePresence>
-        <motion.div
-            className="absolute inset-0 z-0 flex items-start justify-center pt-24"
-            variants={logoVariants}
-            animate={animationState}
-        >
-            <LogoIcon className="h-20 w-20 text-foreground" />
-        </motion.div>
-      </AnimatePresence>
+      <motion.div
+        className="absolute inset-0 z-0 flex items-start justify-center pt-16 sm:pt-24"
+        variants={logoVariants}
+        animate={animationState}
+      >
+        <TacoIcon className="h-20 w-20 text-primary" />
+      </motion.div>
 
       <motion.main
         className="relative z-10 flex min-h-screen flex-col items-center justify-center bg-transparent p-4"
@@ -93,8 +97,8 @@ export default function LoginPage() {
         <div className="w-full max-w-sm">
           <div className="flex flex-col items-center justify-center mb-8">
             <div className="h-20 w-20" />
-            <h1 className="text-4xl font-bold tracking-tighter mt-4">
-              Lumen
+            <h1 className="text-4xl font-bold tracking-tighter mt-4 text-foreground">
+              Taco Vision
             </h1>
             <p className="text-muted-foreground mt-1">Inventory Management</p>
           </div>

@@ -5,7 +5,7 @@ import { Header } from '@/components/dashboard/header';
 import { SidebarProvider, SidebarInset } from '@/components/ui/sidebar';
 import { useState, createContext, useContext, ReactNode } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { LogoIcon } from '@/components/icons';
+import { TacoIcon } from '@/components/icons';
 
 type AppContextType = {
   isNavigating: boolean;
@@ -73,11 +73,11 @@ function DashboardLayoutContent({ children }: { children: React.ReactNode }) {
             >
               <motion.div
                 initial={{ scale: 0.5, opacity: 0 }}
-                animate={{ scale: 1, opacity: 1, rotate: [0, 360, 0] }}
+                animate={{ scale: 1, opacity: 1, rotate: [0, -15, 15, 0], transition: { yoyo: Infinity, duration: 1 } }}
                 exit={{ scale: 0.5, opacity: 0 }}
-                transition={{ duration: 1, ease: 'easeInOut', repeat: Infinity, repeatDelay: 0.5 }}
+                transition={{ duration: 0.5, ease: 'easeInOut' }}
               >
-                <LogoIcon className="h-24 w-24 text-primary" />
+                <TacoIcon className="h-24 w-24 text-primary" />
               </motion.div>
             </motion.div>
           )}
