@@ -10,7 +10,7 @@ import {
   SidebarFooter,
   SidebarTitle,
 } from "@/components/ui/sidebar";
-import { TacoIcon } from "@/components/icons";
+import { LogoIcon } from "@/components/icons";
 import { Separator } from "@/components/ui/separator";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
@@ -19,6 +19,7 @@ import {
   Users,
   Settings,
   LogOut,
+  Briefcase,
 } from "lucide-react";
 import { usePathname } from "next/navigation";
 import Link from 'next/link';
@@ -30,14 +31,15 @@ export function AppSidebar() {
     { href: "/dashboard", label: "Overview", icon: LayoutDashboard },
     { href: "/dashboard/inventory", label: "Inventory", icon: Package },
     { href: "/dashboard/users", label: "Users", icon: Users },
+    { href: "/dashboard/manager-setup", label: "Manager Set-up", icon: Briefcase },
     { href: "/dashboard/settings", label: "Settings", icon: Settings },
   ];
 
   return (
     <Sidebar>
       <SidebarHeader>
-        <TacoIcon className="w-8 h-8 text-primary" />
-        <SidebarTitle>Taco Vision</SidebarTitle>
+        <LogoIcon className="w-8 h-8 text-primary" />
+        <SidebarTitle>Lumen</SidebarTitle>
       </SidebarHeader>
       <SidebarContent>
         <SidebarMenu>

@@ -19,7 +19,8 @@ import { UserPlus, Users, Loader2 } from "lucide-react";
 
 const userFormSchema = z.object({
   name: z.string().min(2, { message: "Name must be at least 2 characters." }),
-  password: z.string().min(8, { message: "Password must be at least 8 characters." }),
+  userNumber: z.string().regex(/^\d{1,4}$/, { message: "User number must be between 1 and 4 digits." }),
+  password: z.string().regex(/^\d{4}$/, { message: "Password must be exactly 4 digits." }),
   role: z.enum(["Team Training", "Manager", "Admin Manager"], {
     required_error: "You need to select a user role.",
   }),
@@ -55,6 +56,7 @@ export function UserManagement() {
     resolver: zodResolver(userFormSchema),
     defaultValues: {
       name: "",
+      userNumber: "",
       password: "",
       role: "Team Training",
     },
@@ -64,9 +66,8 @@ export function UserManagement() {
     setIsLoading(true);
     setTimeout(() => {
       const newUser: User = {
-        id: (Math.floor(Math.random() * 90000) + 10000).toString(), // Random 5-digit ID
+        id: values.userNumber,
         name: values.name,
-        // In a real app, password would be hashed and not stored in state
         role: values.role,
         lastLogin: new Date(),
       };
@@ -120,14 +121,27 @@ export function UserManagement() {
                     </FormItem>
                   )}
                 />
+                 <FormField
+                  control={form.control}
+                  name="userNumber"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>User Number (1-4 digits)</FormLabel>
+                      <FormControl>
+                        <Input type="text" maxLength={4} placeholder="e.g. 1234" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
                 <FormField
                   control={form.control}
                   name="password"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Password</FormLabel>
+                      <FormLabel>Password (4 digits)</FormLabel>
                       <FormControl>
-                        <Input type="password" placeholder="********" {...field} />
+                        <Input type="password" maxLength={4} placeholder="e.g. 5678" {...field} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -171,7 +185,7 @@ export function UserManagement() {
                 Manage Users
             </CardTitle>
             <CardDescription>
-              View and manage existing users in the system.
+              View existing users. More actions are available in Manager Set-up.
             </CardDescription>
           </CardHeader>
           <CardContent>
