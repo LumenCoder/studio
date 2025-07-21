@@ -7,26 +7,38 @@ import { motion } from 'framer-motion';
 import { Package, TrendingDown, TrendingUp, Loader2 } from 'lucide-react';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import type { InventoryItem } from '@/lib/types';
-import { collection, onSnapshot } from 'firebase/firestore';
+import { collection, onSnapshot, doc } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import { Skeleton } from '../ui/skeleton';
 
 export function StockOverview() {
   const [inventory, setInventory] = useState<InventoryItem[]>([]);
   const [loading, setLoading] = useState(true);
+  const [overstockMultiplier, setOverstockMultiplier] = useState(3);
 
   useEffect(() => {
-    const unsubscribe = onSnapshot(collection(db, "inventory"), (snapshot) => {
+    const unsubInventory = onSnapshot(collection(db, "inventory"), (snapshot) => {
       const inventoryData = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as InventoryItem));
       setInventory(inventoryData);
       setLoading(false);
     });
-    return () => unsubscribe();
+
+    const unsubSettings = onSnapshot(doc(db, "settings", "budget"), (docSnap) => {
+        if (docSnap.exists()) {
+            const data = docSnap.data();
+            setOverstockMultiplier(data.overstockThreshold || 3);
+        }
+    });
+
+    return () => {
+        unsubInventory();
+        unsubSettings();
+    };
   }, []);
 
   const totalStock = inventory.reduce((acc, item) => acc + item.stock, 0);
   const lowStockItems = inventory.filter(item => item.stock < item.threshold);
-  const overStockItems = inventory.filter(item => item.stock > item.threshold * 3).length;
+  const overStockItems = inventory.filter(item => item.threshold > 0 && item.stock > item.threshold * overstockMultiplier).length;
 
   const chartData = inventory.map(item => ({
     name: item.name,
