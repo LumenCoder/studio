@@ -3,7 +3,7 @@
 import { useState, useMemo, useEffect } from "react";
 import type { InventoryItem } from "@/lib/types";
 import { db } from "@/lib/firebase";
-import { collection, onSnapshot, addDoc, writeBatch, serverTimestamp } from "firebase/firestore";
+import { collection, onSnapshot, addDoc, doc, writeBatch, serverTimestamp } from "firebase/firestore";
 import { InventoryTable } from "./inventory-table";
 import { AuditLog } from "./audit-log";
 import { PredictionTool } from "./prediction-tool";
@@ -69,8 +69,8 @@ export function InventoryManagement() {
 
     inventory.forEach(item => {
       if (updatedItems[item.id] !== undefined && item.stock !== updatedItems[item.id]) {
-        const docRef = doc(db, "inventory", item.id);
-        batch.update(docRef, { stock: updatedItems[item.id] });
+        const itemDocRef = doc(db, "inventory", item.id);
+        batch.update(itemDocRef, { stock: updatedItems[item.id] });
         updatedItemNames.push(item.name);
       }
     });
@@ -165,4 +165,11 @@ export function InventoryManagement() {
           </div>
           <div className="col-span-1 lg:col-span-4 space-y-6">
             <div className="grid gap-6 md:grid-cols-2">
-              <BudgetOverview
+                <BudgetOverview />
+                <AuditLog />
+            </div>
+          </div>
+      </div>
+    </>
+  );
+}
