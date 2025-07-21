@@ -77,7 +77,7 @@ export default function LoginPage() {
     <div className="relative min-h-screen overflow-hidden">
       <AnimatePresence>
         <motion.div
-            className="absolute inset-0 z-10 flex items-start justify-center pt-24"
+            className="absolute inset-0 z-0 flex items-start justify-center pt-24"
             variants={logoVariants}
             animate={animationState}
         >
@@ -86,7 +86,7 @@ export default function LoginPage() {
       </AnimatePresence>
 
       <motion.main
-        className="flex min-h-screen flex-col items-center justify-center bg-background p-4"
+        className="relative z-10 flex min-h-screen flex-col items-center justify-center bg-transparent p-4"
         variants={pageVariants}
         animate={animationState}
       >
