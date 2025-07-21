@@ -9,7 +9,7 @@ import {
   SidebarMenuButton,
   SidebarFooter,
 } from "@/components/ui/sidebar";
-import { LogoIcon } from "@/components/icons";
+import { TacoIcon } from "@/components/icons";
 import { Separator } from "@/components/ui/separator";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
@@ -36,8 +36,8 @@ export function AppSidebar() {
     <Sidebar>
       <SidebarHeader>
         <div className="flex items-center gap-2">
-          <LogoIcon className="w-8 h-8 text-primary" />
-          <span className="text-xl font-semibold">Lumen</span>
+          <TacoIcon className="w-8 h-8 text-primary" />
+          <span className="text-xl font-semibold">Taco Vision</span>
         </div>
       </SidebarHeader>
       <SidebarContent>
@@ -67,7 +67,7 @@ export function AppSidebar() {
           </Avatar>
           <div className="flex flex-col text-sm group-data-[collapsible=icon]:hidden">
             <span className="font-medium">Admin User</span>
-            <span className="text-xs text-muted-foreground">admin@lumen.com</span>
+            <span className="text-xs text-muted-foreground">admin@taco.vision</span>
           </div>
         </div>
         <SidebarMenu>
