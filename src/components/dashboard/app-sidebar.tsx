@@ -21,11 +21,26 @@ import {
   LogOut,
   Briefcase,
 } from "lucide-react";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import Link from 'next/link';
+import { useAppContext } from "@/app/dashboard/layout";
 
 export function AppSidebar() {
   const pathname = usePathname();
+  const router = useRouter();
+  const { setIsNavigating } = useAppContext();
+
+  const handleNavigation = (href: string, e: React.MouseEvent<HTMLAnchorElement>) => {
+    e.preventDefault();
+    if (pathname !== href) {
+        setIsNavigating(true);
+        setTimeout(() => {
+            router.push(href);
+            // The loading state will be turned off by a component on the target page
+        }, 1200); // Simulate loading time
+    }
+  };
+
 
   const menuItems = [
     { href: "/dashboard", label: "Overview", icon: LayoutDashboard },
@@ -50,7 +65,7 @@ export function AppSidebar() {
                 isActive={pathname === item.href}
                 tooltip={item.label}
               >
-                <Link href={item.href}>
+                <Link href={item.href} onClick={(e) => handleNavigation(item.href, e)}>
                   <item.icon />
                   <span>{item.label}</span>
                 </Link>

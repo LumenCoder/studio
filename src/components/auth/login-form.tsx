@@ -3,7 +3,6 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
-import { useRouter } from "next/navigation";
 import { useState } from "react";
 
 import { Button } from "@/components/ui/button";
@@ -29,8 +28,13 @@ const formSchema = z.object({
   }),
 });
 
-export function LoginForm() {
-  const router = useRouter();
+type LoginFormProps = {
+    onLoginStart: () => void;
+    onLoginResult: (success: boolean) => void;
+};
+
+
+export function LoginForm({ onLoginStart, onLoginResult }: LoginFormProps) {
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
 
@@ -44,9 +48,11 @@ export function LoginForm() {
 
   function onSubmit(values: z.infer<typeof formSchema>) {
     setIsLoading(true);
+    onLoginStart();
+
     setTimeout(() => {
       if (values.userId === "25" && values.pin === "2525") {
-        router.push("/dashboard");
+        onLoginResult(true);
       } else {
         toast({
           variant: "destructive",
@@ -54,6 +60,7 @@ export function LoginForm() {
           description: "Invalid User ID or PIN.",
         });
         setIsLoading(false);
+        onLoginResult(false);
       }
     }, 1000);
   }

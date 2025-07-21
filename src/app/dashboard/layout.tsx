@@ -1,6 +1,36 @@
+"use client";
+
 import { AppSidebar } from '@/components/dashboard/app-sidebar';
 import { Header } from '@/components/dashboard/header';
 import { SidebarProvider, SidebarInset } from '@/components/ui/sidebar';
+import { useState, createContext, useContext, ReactNode } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { LogoIcon } from '@/components/icons';
+
+type AppContextType = {
+  isNavigating: boolean;
+  setIsNavigating: (isNavigating: boolean) => void;
+};
+
+const AppContext = createContext<AppContextType | null>(null);
+
+export const useAppContext = () => {
+  const context = useContext(AppContext);
+  if (!context) {
+    throw new Error('useAppContext must be used within an AppProvider');
+  }
+  return context;
+};
+
+const AppProvider = ({ children }: { children: ReactNode }) => {
+  const [isNavigating, setIsNavigating] = useState(false);
+  return (
+    <AppContext.Provider value={{ isNavigating, setIsNavigating }}>
+      {children}
+    </AppContext.Provider>
+  );
+};
+
 
 export default function DashboardLayout({
   children,
@@ -8,12 +38,51 @@ export default function DashboardLayout({
   children: React.ReactNode;
 }) {
   return (
+    <AppProvider>
+      <DashboardLayoutContent>{children}</DashboardLayoutContent>
+    </AppProvider>
+  );
+}
+
+function DashboardLayoutContent({ children }: { children: React.ReactNode }) {
+  const { isNavigating } = useAppContext();
+
+  return (
     <SidebarProvider>
-      <AppSidebar />
-      <SidebarInset>
-        <Header />
-        {children}
-      </SidebarInset>
+      <div className="relative">
+        <div
+          className={`transition-filter duration-700 ${
+            isNavigating ? 'blur-sm' : 'blur-0'
+          }`}
+        >
+          <AppSidebar />
+          <SidebarInset>
+            <Header />
+            {children}
+          </SidebarInset>
+        </div>
+
+        <AnimatePresence>
+          {isNavigating && (
+            <motion.div
+              className="absolute inset-0 z-50 flex items-center justify-center bg-background/50"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.5 }}
+            >
+              <motion.div
+                initial={{ scale: 0.5, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1, rotate: [0, 360, 0] }}
+                exit={{ scale: 0.5, opacity: 0 }}
+                transition={{ duration: 1, ease: 'easeInOut', repeat: Infinity, repeatDelay: 0.5 }}
+              >
+                <LogoIcon className="h-24 w-24 text-primary" />
+              </motion.div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </div>
     </SidebarProvider>
   );
 }

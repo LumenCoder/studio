@@ -1,10 +1,20 @@
+"use client";
+
+import { useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
+import { useAppContext } from '../layout';
 
 export default function SettingsPage() {
+    const { setIsNavigating } = useAppContext();
+
+    useEffect(() => {
+        setIsNavigating(false);
+    }, [setIsNavigating]);
+
   return (
     <div className="flex-1 space-y-4 p-4 md:p-8 pt-6">
       <div className="space-y-6">
