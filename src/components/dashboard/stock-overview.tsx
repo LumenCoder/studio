@@ -4,7 +4,7 @@ import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip,
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
-import { Package, TrendingDown, TrendingUp, Loader2 } from 'lucide-react';
+import { Package, TrendingDown, TrendingUp, Loader2, Info } from 'lucide-react';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import type { InventoryItem } from '@/lib/types';
 import { collection, onSnapshot, doc } from 'firebase/firestore';
@@ -170,24 +170,30 @@ export function StockOverview() {
                     <div className="flex justify-center items-center h-[350px]">
                       <Loader2 className="h-8 w-8 animate-spin" />
                     </div>
-                ): (
-                <ResponsiveContainer width="100%" height={350}>
-                <BarChart data={chartData}>
-                    <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-                    <XAxis dataKey="name" stroke="hsl(var(--muted-foreground))" fontSize={12} tickLine={false} axisLine={false} />
-                    <YAxis stroke="hsl(var(--muted-foreground))" fontSize={12} tickLine={false} axisLine={false} />
-                    <RechartsTooltip
-                        cursor={{ fill: 'hsl(var(--accent))' }}
-                        contentStyle={{
-                            background: 'hsl(var(--background))',
-                            border: '1px solid hsl(var(--border))',
-                            borderRadius: 'var(--radius)',
-                        }}
-                    />
-                    <Bar dataKey="stock" fill="hsl(var(--primary))" radius={[4, 4, 0, 0]} />
-                    <Bar dataKey="threshold" fill="hsl(var(--destructive))" radius={[4, 4, 0, 0]} />
-                </BarChart>
-                </ResponsiveContainer>
+                ) : inventory.length > 0 ? (
+                    <ResponsiveContainer width="100%" height={350}>
+                        <BarChart data={chartData}>
+                            <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+                            <XAxis dataKey="name" stroke="hsl(var(--muted-foreground))" fontSize={12} tickLine={false} axisLine={false} />
+                            <YAxis stroke="hsl(var(--muted-foreground))" fontSize={12} tickLine={false} axisLine={false} />
+                            <RechartsTooltip
+                                cursor={{ fill: 'hsl(var(--accent))' }}
+                                contentStyle={{
+                                    background: 'hsl(var(--background))',
+                                    border: '1px solid hsl(var(--border))',
+                                    borderRadius: 'var(--radius)',
+                                }}
+                            />
+                            <Bar dataKey="stock" fill="hsl(var(--primary))" radius={[4, 4, 0, 0]} />
+                            <Bar dataKey="threshold" fill="hsl(var(--destructive))" radius={[4, 4, 0, 0]} />
+                        </BarChart>
+                    </ResponsiveContainer>
+                ) : (
+                    <div className="flex flex-col items-center justify-center h-[350px] text-center bg-muted/50 rounded-lg">
+                        <Info className="w-12 h-12 text-muted-foreground mb-4" />
+                        <h3 className="text-xl font-semibold">No Inventory Data</h3>
+                        <p className="text-muted-foreground mt-1">Add items in the Inventory tab to see your stock overview here.</p>
+                    </div>
                 )}
             </CardContent>
             </Card>
