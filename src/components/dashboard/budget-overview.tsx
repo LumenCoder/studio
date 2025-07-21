@@ -35,7 +35,7 @@ export function BudgetOverview() {
     return () => unsubscribe();
   }, []);
 
-  if (loading || !budgetData) {
+  if (loading) {
     return (
       <Card>
         <CardHeader>
@@ -53,8 +53,11 @@ export function BudgetOverview() {
       </Card>
     )
   }
-
-  const percentage = budgetData.budget > 0 ? (budgetData.spent / budgetData.budget) * 100 : 0;
+  
+  const spent = budgetData?.spent ?? 0;
+  const budget = budgetData?.budget ?? 0;
+  const period = budgetData?.period ?? 'Weekly';
+  const percentage = budget > 0 ? (spent / budget) * 100 : 0;
 
   return (
     <Card>
@@ -66,14 +69,14 @@ export function BudgetOverview() {
       </CardHeader>
       <CardContent>
         <div className="text-sm text-muted-foreground">
-          {budgetData.period || 'Weekly'} Spending
+          {period} Spending
         </div>
         <div className="flex items-baseline gap-2 mt-1">
           <span className="text-2xl font-bold">
-            ${budgetData.spent.toLocaleString()}
+            ${spent.toLocaleString()}
           </span>
           <span className="text-sm text-muted-foreground">
-            of ${budgetData.budget.toLocaleString()}
+            of ${budget.toLocaleString()}
           </span>
         </div>
         <Progress value={percentage} className="mt-4 h-2" />
