@@ -26,6 +26,9 @@ export function BudgetOverview() {
     const unsubscribe = onSnapshot(docRef, (docSnap) => {
       if (docSnap.exists()) {
         setBudgetData(docSnap.data() as BudgetData);
+      } else {
+        // Set default data if document doesn't exist to prevent crash
+        setBudgetData({ budget: 0, spent: 0, period: 'Weekly' });
       }
       setLoading(false);
     });
@@ -51,7 +54,7 @@ export function BudgetOverview() {
     )
   }
 
-  const percentage = (budgetData.spent / budgetData.budget) * 100;
+  const percentage = budgetData.budget > 0 ? (budgetData.spent / budgetData.budget) * 100 : 0;
 
   return (
     <Card>
@@ -63,7 +66,7 @@ export function BudgetOverview() {
       </CardHeader>
       <CardContent>
         <div className="text-sm text-muted-foreground">
-          {budgetData.period} Spending
+          {budgetData.period || 'Weekly'} Spending
         </div>
         <div className="flex items-baseline gap-2 mt-1">
           <span className="text-2xl font-bold">
