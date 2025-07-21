@@ -4,7 +4,6 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { useState } from "react";
-import { useRouter } from "next/navigation";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -29,10 +28,14 @@ const formSchema = z.object({
   }),
 });
 
-export function LoginForm() {
+type LoginFormProps = {
+    onLoginStart: () => void;
+    onLoginResult: (success: boolean) => void;
+}
+
+export function LoginForm({ onLoginStart, onLoginResult }: LoginFormProps) {
   const { toast } = useToast();
-  const [isLoading, setIsLoading] = useState(false);
-  const router = useRouter();
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -43,19 +46,21 @@ export function LoginForm() {
   });
 
   function onSubmit(values: z.infer<typeof formSchema>) {
-    setIsLoading(true);
+    setIsSubmitting(true);
+    onLoginStart();
 
     // Simulate network delay
     setTimeout(() => {
       try {
         if (values.userId === "25" && values.pin === "2525") {
-          router.push("/dashboard");
+          onLoginResult(true);
         } else {
           toast({
             variant: "destructive",
             title: "Login Failed",
             description: "Invalid User ID or PIN.",
           });
+          onLoginResult(false);
         }
       } catch (error) {
         toast({
@@ -63,8 +68,9 @@ export function LoginForm() {
           title: "An Error Occurred",
           description: "Something went wrong. Please try again.",
         });
+        onLoginResult(false);
       } finally {
-        setIsLoading(false);
+        setIsSubmitting(false);
       }
     }, 1000);
   }
@@ -104,8 +110,8 @@ export function LoginForm() {
                 </FormItem>
               )}
             />
-             <Button type="submit" className="w-full" disabled={isLoading}>
-              {isLoading ? <Loader2 className="animate-spin" /> : "Sign In"}
+             <Button type="submit" className="w-full" disabled={isSubmitting}>
+              {isSubmitting ? <Loader2 className="animate-spin" /> : "Sign In"}
             </Button>
           </form>
         </Form>
