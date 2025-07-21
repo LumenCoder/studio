@@ -34,9 +34,6 @@ export function AppSidebar() {
     e.preventDefault();
     if (pathname !== href) {
         setIsNavigating(true);
-        setTimeout(() => {
-            router.push(href);
-        }, 700); // Wait for animation to start
     }
   };
 
@@ -78,11 +75,11 @@ export function AppSidebar() {
         <div className="flex items-center gap-3 p-2 rounded-md hover:bg-sidebar-accent">
           <Avatar className="h-9 w-9">
             <AvatarImage src="https://placehold.co/40x40" alt="@admin" data-ai-hint="profile picture" />
-            <AvatarFallback>AD</AvatarFallback>
+            <AvatarFallback>A</AvatarFallback>
           </Avatar>
           <div className="flex flex-col text-sm group-data-[collapsible=icon]:hidden">
-            <span className="font-medium">Admin User</span>
-            <span className="text-xs text-muted-foreground">ID: 25</span>
+            <span className="font-medium">Arturo</span>
+            <span className="text-xs text-muted-foreground">ID: 1111</span>
           </div>
         </div>
         <SidebarMenu>

@@ -48,7 +48,7 @@ export function InventoryManagement() {
     try {
       await addDoc(collection(db, "inventory"), newItem);
       await addDoc(collection(db, "auditLogs"), {
-        user: "Admin User", // Replace with actual user later
+        user: "Arturo", // Replace with actual user later
         action: "added_item",
         item: newItem.name,
         timestamp: serverTimestamp(),
@@ -79,7 +79,7 @@ export function InventoryManagement() {
        try {
         await batch.commit();
         await addDoc(collection(db, "auditLogs"), {
-            user: "Admin User", // Replace with actual user
+            user: "Arturo", // Replace with actual user
             action: "updated_stock",
             item: `${updatedItemNames.length} items`,
             timestamp: serverTimestamp(),

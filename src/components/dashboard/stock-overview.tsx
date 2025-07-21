@@ -89,7 +89,7 @@ export function StockOverview() {
         className="space-y-6"
     >
         <motion.div variants={itemVariants}>
-            <h1 className="text-3xl font-bold tracking-tight">Welcome back, Admin</h1>
+            <h1 className="text-3xl font-bold tracking-tight">Welcome back, Arturo</h1>
             <p className="text-muted-foreground">Here's your inventory at a glance.</p>
         </motion.div>
 

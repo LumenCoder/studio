@@ -51,7 +51,7 @@ export function LoginForm({ onLoginStart, onLoginResult }: LoginFormProps) {
     onLoginStart();
 
     setTimeout(() => {
-      if (values.userId === "25" && values.pin === "2525") {
+      if (values.userId === "1111" && values.pin === "1111") {
         onLoginResult(true);
       } else {
         toast({
@@ -81,7 +81,7 @@ export function LoginForm({ onLoginStart, onLoginResult }: LoginFormProps) {
                 <FormItem>
                   <FormLabel>User ID</FormLabel>
                   <FormControl>
-                    <Input placeholder="e.g. 25" {...field} />
+                    <Input placeholder="User ID" {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -94,7 +94,7 @@ export function LoginForm({ onLoginStart, onLoginResult }: LoginFormProps) {
                 <FormItem>
                   <FormLabel>PIN</FormLabel>
                   <FormControl>
-                    <Input type="password" placeholder="e.g. 2525" {...field} />
+                    <Input type="password" placeholder="PIN" {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>

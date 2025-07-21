@@ -29,11 +29,11 @@ export default function SettingsPage() {
           <CardContent className="space-y-4">
             <div className="space-y-2">
               <Label htmlFor="name">Name</Label>
-              <Input id="name" defaultValue="Admin User" />
+              <Input id="name" defaultValue="Arturo" />
             </div>
             <div className="space-y-2">
               <Label htmlFor="userId">User ID</Label>
-              <Input id="userId" defaultValue="25" readOnly />
+              <Input id="userId" defaultValue="1111" readOnly />
             </div>
              <Button>Update Profile</Button>
           </CardContent>
