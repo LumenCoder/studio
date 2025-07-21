@@ -21,19 +21,17 @@ import {
   LogOut,
   Briefcase,
 } from "lucide-react";
-import { usePathname, useRouter } from "next/navigation";
+import { usePathname } from "next/navigation";
 import Link from 'next/link';
 import { useAppContext } from "@/app/dashboard/layout";
 
 export function AppSidebar() {
   const pathname = usePathname();
-  const { setIsNavigating } = useAppContext();
+  const { navigateTo } = useAppContext();
 
   const handleNavigation = (href: string, e: React.MouseEvent<HTMLAnchorElement>) => {
     e.preventDefault();
-    if (pathname !== href) {
-        setIsNavigating(true);
-    }
+    navigateTo(href);
   };
 
 

@@ -2,83 +2,20 @@
 
 import { LoginForm } from "@/components/auth/login-form";
 import { TacoIcon } from "@/components/icons";
-import { motion } from "framer-motion";
-import { useState } from "react";
-import { useRouter } from "next/navigation";
-
-type AnimationState = "idle" | "loading";
 
 export default function LoginPage() {
-  const [animationState, setAnimationState] = useState<AnimationState>("idle");
-  const router = useRouter();
-
-  const handleLoginStart = () => {
-    setAnimationState("loading");
-  };
-
-  const handleLoginResult = (success: boolean) => {
-    if (success) {
-      // The router push will unmount the component, no need for another state.
-      router.push("/dashboard");
-    } else {
-      // If login fails, just return to the idle state for another attempt.
-      setAnimationState("idle");
-    }
-  };
-  
-  const logoVariants = {
-    idle: {
-      y: 0,
-      scale: 1,
-      transition: { type: "spring", stiffness: 100, damping: 15 },
-    },
-    loading: {
-      y: "30vh",
-      scale: 1.5,
-      transition: { type: "spring", stiffness: 100, damping: 15 },
-    },
-  };
-
-  const pageVariants = {
-    idle: {
-        opacity: 1,
-        transition: { duration: 0.5 },
-    },
-    loading: {
-        opacity: 0,
-        transition: { duration: 0.5 },
-    },
-  };
-
   return (
-    <div className="relative min-h-screen overflow-hidden">
-      <motion.div
-        className="absolute inset-0 z-0 flex items-start justify-center pt-16 sm:pt-24"
-        variants={logoVariants}
-        animate={animationState}
-      >
-        <TacoIcon className="h-20 w-20 text-primary" />
-      </motion.div>
-
-      <motion.main
-        className="relative z-10 flex min-h-screen flex-col items-center justify-center bg-transparent p-4"
-        variants={pageVariants}
-        animate={animationState}
-      >
-        <div className="w-full max-w-sm">
-          <div className="flex flex-col items-center justify-center mb-8">
-            <div className="h-20 w-20" />
+    <div className="relative min-h-screen flex flex-col items-center justify-center p-4">
+      <div className="w-full max-w-sm">
+        <div className="flex flex-col items-center justify-center mb-8">
+            <TacoIcon className="h-20 w-20 text-primary" />
             <h1 className="text-4xl font-bold tracking-tighter mt-4 text-foreground">
               Taco Vision
             </h1>
             <p className="text-muted-foreground mt-1">Inventory Management</p>
-          </div>
-          <LoginForm 
-            onLoginStart={handleLoginStart}
-            onLoginResult={handleLoginResult}
-          />
         </div>
-      </motion.main>
+        <LoginForm />
+      </div>
     </div>
   );
 }

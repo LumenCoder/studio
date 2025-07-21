@@ -4,6 +4,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -28,15 +29,10 @@ const formSchema = z.object({
   }),
 });
 
-type LoginFormProps = {
-    onLoginStart: () => void;
-    onLoginResult: (success: boolean) => void;
-};
-
-
-export function LoginForm({ onLoginStart, onLoginResult }: LoginFormProps) {
+export function LoginForm() {
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
+  const router = useRouter();
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -48,20 +44,18 @@ export function LoginForm({ onLoginStart, onLoginResult }: LoginFormProps) {
 
   function onSubmit(values: z.infer<typeof formSchema>) {
     setIsLoading(true);
-    onLoginStart();
 
     // Simulate network delay
     setTimeout(() => {
       try {
         if (values.userId === "25" && values.pin === "2525") {
-          onLoginResult(true);
+          router.push("/dashboard");
         } else {
           toast({
             variant: "destructive",
             title: "Login Failed",
             description: "Invalid User ID or PIN.",
           });
-          onLoginResult(false);
         }
       } catch (error) {
         toast({
@@ -69,9 +63,7 @@ export function LoginForm({ onLoginStart, onLoginResult }: LoginFormProps) {
           title: "An Error Occurred",
           description: "Something went wrong. Please try again.",
         });
-        onLoginResult(false);
       } finally {
-        // This ensures the loading state inside the form is always reset
         setIsLoading(false);
       }
     }, 1000);

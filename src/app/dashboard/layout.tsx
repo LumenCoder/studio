@@ -6,11 +6,12 @@ import { SidebarProvider, SidebarInset } from '@/components/ui/sidebar';
 import { useState, createContext, useContext, ReactNode, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { TacoIcon } from '@/components/icons';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 
 type AppContextType = {
   isNavigating: boolean;
   setIsNavigating: (isNavigating: boolean) => void;
+  navigateTo: (path: string) => void;
 };
 
 const AppContext = createContext<AppContextType | null>(null);
@@ -26,17 +27,26 @@ export const useAppContext = () => {
 const AppProvider = ({ children }: { children: ReactNode }) => {
   const [isNavigating, setIsNavigating] = useState(false);
   const pathname = usePathname();
+  const router = useRouter();
 
   useEffect(() => {
-    // Turn off navigation loading state whenever the path changes
+    // This effect runs when the page navigation is complete.
+    // It turns off the loading animation.
     if (isNavigating) {
       setIsNavigating(false);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [pathname]);
 
+  const navigateTo = (path: string) => {
+    if (pathname !== path) {
+      setIsNavigating(true);
+      router.push(path);
+    }
+  };
+
   return (
-    <AppContext.Provider value={{ isNavigating, setIsNavigating }}>
+    <AppContext.Provider value={{ isNavigating, setIsNavigating, navigateTo }}>
       {children}
     </AppContext.Provider>
   );
