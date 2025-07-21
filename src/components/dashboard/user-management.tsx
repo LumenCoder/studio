@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, useEffect } from "react";
@@ -230,3 +231,8 @@ export function UserManagement() {
             </Table>
             }
           </CardContent>
+        </Card>
+      </div>
+    </div>
+  );
+}
