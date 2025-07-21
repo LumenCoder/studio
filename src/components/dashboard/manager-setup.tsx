@@ -42,11 +42,11 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
-import { Trash2, Edit, Save, DollarSign, BarChart, FileSpreadsheet, Loader2 } from "lucide-react";
+import { Trash2, Edit, Save, DollarSign, BarChart, FileSpreadsheet, Loader2, Info } from "lucide-react";
 import type { User, InventoryItem } from "@/lib/types";
 import { runShipmentCalculation, type ShipmentCalculationOutput } from "@/lib/actions";
 import { db } from "@/lib/firebase";
-import { collection, doc, onSnapshot, deleteDoc, setDoc, getDocs, writeBatch } from "firebase/firestore";
+import { collection, doc, onSnapshot, deleteDoc, setDoc } from "firebase/firestore";
 
 const budgetSchema = z.object({
   budget: z.coerce.number().positive("Budget must be positive."),
@@ -105,10 +105,11 @@ export function ManagerSetup() {
         description: "Budget and overstock settings have been saved.",
       });
     } catch (error) {
+      console.error(error);
       toast({
         variant: "destructive",
         title: "Update Failed",
-        description: "Could not save settings.",
+        description: "Could not save settings. Check Firestore rules.",
       });
     }
   };
@@ -192,8 +193,8 @@ export function ManagerSetup() {
                   </FormItem>
                 )}
               />
-              <Button type="submit">
-                <Save className="mr-2 h-4 w-4" />
+              <Button type="submit" disabled={budgetForm.formState.isSubmitting}>
+                {budgetForm.formState.isSubmitting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Save className="mr-2 h-4 w-4" />}
                 Save Settings
               </Button>
             </form>
@@ -207,19 +208,28 @@ export function ManagerSetup() {
             <CardDescription>Generate a list of items needed for the next shipment.</CardDescription>
         </CardHeader>
         <CardContent>
-            <Button onClick={handleCalculateShipment} disabled={isCalculating} className="w-full">
-                {isCalculating ? (
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                ) : (
-                    <FileSpreadsheet className="mr-2 h-4 w-4" />
+            {inventory.length > 0 ? (
+              <>
+                <Button onClick={handleCalculateShipment} disabled={isCalculating} className="w-full">
+                    {isCalculating ? (
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    ) : (
+                        <FileSpreadsheet className="mr-2 h-4 w-4" />
+                    )}
+                    Calculate New Shipment
+                </Button>
+                {shipmentResult && (
+                    <div className="mt-4 space-y-2 text-sm font-mono p-4 bg-muted rounded-md max-h-96 overflow-y-auto">
+                        <h4 className="font-sans font-bold text-base">Shipment Needs:</h4>
+                        <pre className="whitespace-pre-wrap">{shipmentResult.shipmentList}</pre>
+                    </div>
                 )}
-                Calculate New Shipment
-            </Button>
-            {shipmentResult && (
-                <div className="mt-4 space-y-2 text-sm font-mono p-4 bg-muted rounded-md max-h-96 overflow-y-auto">
-                    <h4 className="font-sans font-bold text-base">Shipment Needs:</h4>
-                    <pre className="whitespace-pre-wrap">{shipmentResult.shipmentList}</pre>
-                </div>
+              </>
+            ) : (
+              <div className="flex flex-col items-center justify-center text-center text-muted-foreground p-8 border-2 border-dashed rounded-lg">
+                <Info className="w-10 h-10 mb-2" />
+                <p>You need to add inventory items before you can calculate a shipment.</p>
+              </div>
             )}
         </CardContent>
       </Card>
