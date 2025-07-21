@@ -86,3 +86,5 @@ function DashboardLayoutContent({ children }: { children: React.ReactNode }) {
           </AnimatePresence>
         </div>
     </SidebarInset>
+  );
+}
