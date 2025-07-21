@@ -27,7 +27,6 @@ import { useAppContext } from "@/app/dashboard/layout";
 
 export function AppSidebar() {
   const pathname = usePathname();
-  const router = useRouter();
   const { setIsNavigating } = useAppContext();
 
   const handleNavigation = (href: string, e: React.MouseEvent<HTMLAnchorElement>) => {
@@ -79,7 +78,7 @@ export function AppSidebar() {
           </Avatar>
           <div className="flex flex-col text-sm group-data-[collapsible=icon]:hidden">
             <span className="font-medium">Arturo</span>
-            <span className="text-xs text-muted-foreground">ID: 1111</span>
+            <span className="text-xs text-muted-foreground">ID: 25</span>
           </div>
         </div>
         <SidebarMenu>

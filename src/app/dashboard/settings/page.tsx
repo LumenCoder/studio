@@ -33,7 +33,7 @@ export default function SettingsPage() {
             </div>
             <div className="space-y-2">
               <Label htmlFor="userId">User ID</Label>
-              <Input id="userId" defaultValue="1111" readOnly />
+              <Input id="userId" defaultValue="25" readOnly />
             </div>
              <Button>Update Profile</Button>
           </CardContent>
