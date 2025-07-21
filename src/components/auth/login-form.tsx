@@ -16,7 +16,7 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
 import { Loader2 } from "lucide-react";
 
@@ -24,8 +24,8 @@ const formSchema = z.object({
   username: z.string().min(1, {
     message: "Username is required.",
   }),
-  pin: z.string().length(4, {
-    message: "PIN must be 4 digits.",
+  pin: z.string().min(4, {
+    message: "PIN must be at least 4 digits.",
   }),
 });
 
@@ -47,10 +47,6 @@ export function LoginForm() {
     // Simulate API call
     setTimeout(() => {
       if (values.username === "admin" && values.pin === "1234") {
-        toast({
-          title: "Login Successful",
-          description: "Welcome back, admin!",
-        });
         router.push("/dashboard");
       } else {
         toast({
@@ -64,9 +60,10 @@ export function LoginForm() {
   }
 
   return (
-    <Card>
+    <Card className="bg-card">
       <CardHeader>
         <CardTitle>Sign In</CardTitle>
+        <CardDescription>Enter your credentials to access your dashboard.</CardDescription>
       </CardHeader>
       <CardContent>
         <Form {...form}>
@@ -89,9 +86,9 @@ export function LoginForm() {
               name="pin"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>4-Digit PIN</FormLabel>
+                  <FormLabel>PIN</FormLabel>
                   <FormControl>
-                    <Input type="password" placeholder="e.g. 1234" maxLength={4} {...field} />
+                    <Input type="password" placeholder="e.g. 1234" {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>

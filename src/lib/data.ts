@@ -7,19 +7,19 @@ export type InventoryItem = {
 };
 
 export const inventoryData: InventoryItem[] = [
-  { id: '1', name: 'Seasoned Beef', category: 'Protein', stock: 50, threshold: 20 },
-  { id: '2', name: 'Shredded Chicken', category: 'Protein', stock: 45, threshold: 20 },
-  { id: '3', name: 'Nacho Cheese Sauce', category: 'Sauce', stock: 80, threshold: 30 },
-  { id: '4', name: '6" Flour Tortillas', category: 'Tortilla', stock: 200, threshold: 100 },
-  { id: '5', name: 'Crunchy Taco Shells', category: 'Tortilla', stock: 150, threshold: 75 },
-  { id: '6', name: 'Shredded Lettuce', category: 'Produce', stock: 30, threshold: 15 },
-  { id: '7', name: 'Diced Tomatoes', category: 'Produce', stock: 25, threshold: 15 },
-  { id: '8', name: 'Cheddar Cheese', category: 'Dairy', stock: 60, threshold: 25 },
-  { id: '9', name: 'Sour Cream', category: 'Dairy', stock: 40, threshold: 20 },
-  { id: '10', name: 'Taco Wrappers', category: 'Packaging', stock: 500, threshold: 200 },
-  { id: '11', name: 'Medium Drink Cups', category: 'Drink', stock: 400, threshold: 150 },
-  { id: '12', name: 'Steak', category: 'Protein', stock: 15, threshold: 20 },
-  { id: '13', name: 'Black Beans', category: 'Produce', stock: 70, threshold: 25 },
+  { id: '1', name: 'Angus Beef Patty', category: 'Protein', stock: 80, threshold: 40 },
+  { id: '2', name: 'Grilled Chicken Breast', category: 'Protein', stock: 60, threshold: 30 },
+  { id: '3', name: 'Cheddar Cheese Slices', category: 'Dairy', stock: 120, threshold: 50 },
+  { id: '4', name: 'Brioche Buns', category: 'Tortilla', stock: 150, threshold: 75 },
+  { id: '5', name: 'Crispy Onion Rings', category: 'Produce', stock: 40, threshold: 20 },
+  { id: '6', name: 'Iceberg Lettuce', category: 'Produce', stock: 30, threshold: 15 },
+  { id: '7', name: 'Sliced Tomatoes', category: 'Produce', stock: 25, threshold: 15 },
+  { id: '8', name: 'Pickle Chips', category: 'Produce', stock: 50, threshold: 25 },
+  { id: '9', 'name': 'Ketchup', 'category': 'Sauce', 'stock': 100, 'threshold': 50 },
+  { id: '10', name: 'Burger Wrappers', category: 'Packaging', stock: 500, threshold: 200 },
+  { id: '11', name: 'Fountain Drink Syrup', category: 'Drink', stock: 30, threshold: 10 },
+  { id: '12', name: 'Bacon Strips', category: 'Protein', stock: 35, threshold: 20 },
+  { id: '13', name: 'French Fries', category: 'Produce', stock: 200, threshold: 100 },
 ];
 
 export type AuditLog = {
@@ -31,14 +31,28 @@ export type AuditLog = {
 };
 
 export const auditLogs: AuditLog[] = [
-  { id: '1', user: 'admin', action: 'updated_stock', item: 'Seasoned Beef', timestamp: new Date(Date.now() - 2 * 60 * 60 * 1000) },
-  { id: '2', user: 'admin', action: 'added_item', item: 'Black Beans', timestamp: new Date(Date.now() - 5 * 60 * 60 * 1000) },
-  { id: '3', user: 'jane.doe', action: 'updated_stock', item: 'Crunchy Taco Shells', timestamp: new Date(Date.now() - 24 * 60 * 60 * 1000) },
-  { id: '4', user: 'admin', action: 'flagged_low', item: 'Steak', timestamp: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000) },
+  { id: '1', user: 'admin', action: 'updated_stock', item: 'Angus Beef Patty', timestamp: new Date(Date.now() - 2 * 60 * 60 * 1000) },
+  { id: '2', user: 'admin', action: 'added_item', item: 'French Fries', timestamp: new Date(Date.now() - 5 * 60 * 60 * 1000) },
+  { id: '3', user: 'jane.doe', action: 'updated_stock', item: 'Brioche Buns', timestamp: new Date(Date.now() - 24 * 60 * 60 * 1000) },
+  { id: '4', user: 'admin', action: 'flagged_low', item: 'Fountain Drink Syrup', timestamp: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000) },
 ];
 
 export const budgetData = {
-  budget: 5000,
-  spent: 3750,
+  budget: 10000,
+  spent: 7650,
   period: 'Weekly',
 };
+
+export type User = {
+  id: string;
+  name: string;
+  email: string;
+  role: 'Team Training' | 'Manager' | 'Admin Manager';
+  lastLogin: Date;
+};
+
+export const userData: User[] = [
+    { id: '1', name: 'Admin User', email: 'admin@lumen.com', role: 'Admin Manager', lastLogin: new Date() },
+    { id: '2', name: 'John Smith', email: 'john.smith@lumen.com', role: 'Manager', lastLogin: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000) },
+    { id: '3', name: 'Jane Doe', email: 'jane.doe@lumen.com', role: 'Team Training', lastLogin: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000) },
+];

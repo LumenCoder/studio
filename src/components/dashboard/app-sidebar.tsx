@@ -9,13 +9,13 @@ import {
   SidebarMenuButton,
   SidebarFooter,
 } from "@/components/ui/sidebar";
-import { TacoIcon } from "@/components/icons";
+import { LogoIcon } from "@/components/icons";
 import { Separator } from "@/components/ui/separator";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
   LayoutDashboard,
   Package,
-  LineChart,
+  Users,
   Settings,
   LogOut,
 } from "lucide-react";
@@ -28,7 +28,7 @@ export function AppSidebar() {
   const menuItems = [
     { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
     { href: "#", label: "Inventory", icon: Package },
-    { href: "#", label: "Reports", icon: LineChart },
+    { href: "/dashboard/users", label: "Users", icon: Users },
     { href: "#", label: "Settings", icon: Settings },
   ];
 
@@ -36,8 +36,8 @@ export function AppSidebar() {
     <Sidebar>
       <SidebarHeader>
         <div className="flex items-center gap-2">
-          <TacoIcon className="w-8 h-8 text-primary" />
-          <span className="text-xl font-semibold">Taco Vision</span>
+          <LogoIcon className="w-8 h-8 text-primary" />
+          <span className="text-xl font-semibold">Lumen</span>
         </div>
       </SidebarHeader>
       <SidebarContent>
@@ -67,7 +67,7 @@ export function AppSidebar() {
           </Avatar>
           <div className="flex flex-col text-sm group-data-[collapsible=icon]:hidden">
             <span className="font-medium">Admin User</span>
-            <span className="text-xs text-muted-foreground">admin@tacovision.com</span>
+            <span className="text-xs text-muted-foreground">admin@lumen.com</span>
           </div>
         </div>
         <SidebarMenu>

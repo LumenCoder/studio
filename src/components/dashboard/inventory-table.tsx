@@ -28,7 +28,7 @@ export function InventoryTable() {
   };
 
   return (
-    <Card>
+    <Card className="bg-card">
       <CardHeader className="flex flex-row items-center justify-between">
         <div>
           <CardTitle>Inventory</CardTitle>
@@ -37,7 +37,7 @@ export function InventoryTable() {
         <InventoryActions />
       </CardHeader>
       <CardContent>
-        <ScrollArea className="h-[600px]">
+        <ScrollArea className="h-[480px]">
           <Table>
             <TableHeader>
               <TableRow>

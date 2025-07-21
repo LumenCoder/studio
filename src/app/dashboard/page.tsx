@@ -4,34 +4,23 @@ import { BudgetOverview } from "@/components/dashboard/budget-overview";
 import { InventoryTable } from "@/components/dashboard/inventory-table";
 import { PredictionTool } from "@/components/dashboard/prediction-tool";
 import { AlertCircle } from "lucide-react";
+import { UserManagement } from "@/components/dashboard/user-management";
 
-function SchedulingAlert() {
-  const day = new Date().getDay();
-  const isAlertDay = day === 1 || day === 4; // Monday or Thursday
-
-  if (!isAlertDay) {
-    return null;
-  }
-
+function WelcomeHeader() {
   return (
-    <Alert className="mb-6 bg-primary/10 border-primary/20 text-primary-foreground">
-      <AlertCircle className="h-4 w-4 !text-primary" />
-      <AlertTitle className="font-semibold !text-primary">
-        {day === 1 ? "Monday" : "Thursday"} Inventory Alert
-      </AlertTitle>
-      <AlertDescription className="!text-foreground/80">
-        Time for your scheduled inventory check! Review current stock and use the prediction tool to plan your next order.
-      </AlertDescription>
-    </Alert>
+    <div className="mb-6">
+      <h1 className="text-3xl font-bold tracking-tight">Welcome back, Admin</h1>
+      <p className="text-muted-foreground">Here's what's happening with your inventory today.</p>
+    </div>
   );
 }
 
 export default function DashboardPage() {
   return (
     <div className="flex-1 space-y-4 p-4 md:p-8 pt-6">
-      <SchedulingAlert />
+      <WelcomeHeader />
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-7">
-        <div className="col-span-1 lg:col-span-4">
+        <div className="col-span-1 lg:col-span-4 space-y-6">
           <InventoryTable />
         </div>
         <div className="col-span-1 lg:col-span-3 space-y-6">
@@ -39,6 +28,9 @@ export default function DashboardPage() {
           <BudgetOverview />
           <AuditLog />
         </div>
+      </div>
+      <div className="mt-6">
+        <UserManagement />
       </div>
     </div>
   );

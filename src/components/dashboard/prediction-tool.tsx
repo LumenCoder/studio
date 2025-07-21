@@ -71,7 +71,7 @@ export function PredictionTool() {
   }
 
   return (
-    <Card>
+    <Card className="bg-card">
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <BrainCircuit className="w-6 h-6" />
