@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { inventoryData as initialInventoryData, type InventoryItem } from "@/lib/data";
 import { InventoryTable } from "./inventory-table";
 import { AuditLog } from "./audit-log";
@@ -11,10 +11,14 @@ import { InventoryActions } from "./inventory-actions";
 import { Button } from "../ui/button";
 import { RefreshCw } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { getStatus } from "@/lib/utils";
 
 export function InventoryManagement() {
   const [inventory, setInventory] = useState<InventoryItem[]>(initialInventoryData);
   const [isUpdateDay, setIsUpdateDay] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [categoryFilter, setCategoryFilter] = useState("All");
+  const [statusFilter, setStatusFilter] = useState("All");
   const { toast } = useToast();
 
   useEffect(() => {
@@ -26,50 +30,80 @@ export function InventoryManagement() {
   }, []);
 
   const handleAddItem = (newItem: InventoryItem) => {
-    setInventory((prevInventory) => [...prevInventory, newItem]);
-    // In a real app, this would also update the backend/database
+    setInventory((prevInventory) => [newItem, ...prevInventory]);
   };
   
   const handleUpdateInventory = () => {
-    // In a real app, this would likely open a modal or navigate to a page
-    // to batch-update inventory counts. For this example, we'll just show a toast.
     toast({
       title: "Inventory Update",
       description: "Ready to update inventory counts for today.",
     });
   };
 
+  const categories = useMemo(() => [...new Set(inventory.map(item => item.category))], [inventory]);
+
+  const filteredInventory = useMemo(() => {
+    return inventory
+      .filter(item => {
+        // Search filter
+        const matchesSearch = item.name.toLowerCase().includes(searchQuery.toLowerCase());
+
+        // Category filter
+        const matchesCategory = categoryFilter === 'All' || item.category === categoryFilter;
+
+        // Status filter
+        const status = getStatus(item.stock, item.threshold).label;
+        const matchesStatus = statusFilter === 'All' || status === statusFilter;
+
+        return matchesSearch && matchesCategory && matchesStatus;
+      });
+  }, [inventory, searchQuery, categoryFilter, statusFilter]);
+
   return (
     <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-7">
-        <div className="col-span-1 lg:col-span-4 space-y-6">
+        <div className="col-span-1 lg:col-span-7 space-y-6">
             <Card className="bg-card">
-              <CardHeader className="flex flex-row items-center justify-between">
-                <div>
-                  <CardTitle>Inventory</CardTitle>
-                  <CardDescription>Real-time stock levels for all items.</CardDescription>
-                </div>
-                <div className="flex items-center gap-2">
+              <CardHeader className="flex flex-col gap-4">
+                <div className="flex flex-row items-start justify-between">
+                  <div>
+                    <CardTitle>Inventory</CardTitle>
+                    <CardDescription>Real-time stock levels for all items.</CardDescription>
+                  </div>
                   <Button 
                     size="sm" 
+                    variant={isUpdateDay ? "default" : "secondary"}
                     onClick={handleUpdateInventory} 
-                    disabled={!isUpdateDay}
                     aria-label="Update Inventory"
                   >
                     <RefreshCw className="mr-2 h-4 w-4" />
                     Update Inventory
+                    {isUpdateDay && <span className="ml-2 w-2 h-2 rounded-full bg-green-400 animate-pulse"></span>}
                   </Button>
-                  <InventoryActions onAddItem={handleAddItem} />
                 </div>
+                 <InventoryActions
+                  onAddItem={handleAddItem}
+                  searchQuery={searchQuery}
+                  setSearchQuery={setSearchQuery}
+                  categoryFilter={categoryFilter}
+                  setCategoryFilter={setCategoryFilter}
+                  statusFilter={statusFilter}
+                  setStatusFilter={setStatusFilter}
+                  categories={categories}
+                />
               </CardHeader>
               <CardContent>
-                <InventoryTable inventory={inventory} />
+                <InventoryTable inventory={filteredInventory} />
               </CardContent>
             </Card>
         </div>
         <div className="col-span-1 lg:col-span-3 space-y-6">
           <PredictionTool />
-          <BudgetOverview />
-          <AuditLog />
+        </div>
+        <div className="col-span-1 lg:col-span-4 space-y-6">
+          <div className="grid gap-6 md:grid-cols-2">
+            <BudgetOverview />
+            <AuditLog />
+          </div>
         </div>
       </div>
   );
