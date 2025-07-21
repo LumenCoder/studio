@@ -67,7 +67,7 @@ export function StockOverview() {
         <Skeleton className="h-3 w-2/3 mt-1" />
       </CardContent>
     </Card>
-  )
+  );
 
   return (
     <motion.div
@@ -176,3 +176,10 @@ export function StockOverview() {
                     <Bar dataKey="threshold" fill="hsl(var(--destructive))" radius={[4, 4, 0, 0]} />
                 </BarChart>
                 </ResponsiveContainer>
+                )}
+            </CardContent>
+            </Card>
+        </motion.div>
+    </motion.div>
+  );
+}
