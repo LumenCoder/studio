@@ -51,7 +51,7 @@ function DashboardLayoutContent({ children }: { children: React.ReactNode }) {
     <SidebarProvider>
       <div className="relative">
         <div
-          className={`transition-filter duration-700 ${
+          className={`transition-filter duration-700 flex ${
             isNavigating ? 'blur-sm' : 'blur-0'
           }`}
         >
