@@ -246,4 +246,9 @@ export function InventoryActions({
                   <Button type="submit">Save changes</Button>
               </DialogFooter>
             </form>
-          </Form
+          </Form>
+        </DialogContent>
+      </Dialog>
+    </div>
+  );
+}
