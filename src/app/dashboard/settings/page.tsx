@@ -48,4 +48,9 @@ export default function SettingsPage() {
           </CardHeader>
           <CardContent>
             <p className="text-sm text-muted-foreground">Theme controls are available in the header.</p>
-          
+          </CardContent>
+        </Card>
+      </div>
+    </div>
+  );
+}
