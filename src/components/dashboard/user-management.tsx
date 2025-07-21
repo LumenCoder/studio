@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
@@ -14,7 +14,6 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Separator } from "@/components/ui/separator";
 import { UserPlus, Users, Loader2 } from "lucide-react";
 
 const userFormSchema = z.object({
@@ -26,10 +25,26 @@ const userFormSchema = z.object({
   }),
 });
 
+type FormattedUser = Omit<User, 'lastLogin'> & {
+  lastLogin: string;
+};
+
 export function UserManagement() {
   const { toast } = useToast();
   const [users, setUsers] = useState<User[]>(userData);
+  const [formattedUsers, setFormattedUsers] = useState<FormattedUser[]>([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [isClient, setIsClient] = useState(false);
+
+  useEffect(() => {
+    setIsClient(true);
+    const newFormattedUsers = users.map(user => ({
+      ...user,
+      lastLogin: format(user.lastLogin, "PPP"),
+    }));
+    setFormattedUsers(newFormattedUsers);
+  }, [users]);
+
 
   const form = useForm<z.infer<typeof userFormSchema>>({
     resolver: zodResolver(userFormSchema),
@@ -52,7 +67,7 @@ export function UserManagement() {
         role: values.role,
         lastLogin: new Date(),
       };
-      setUsers([...users, newUser]);
+      setUsers(prevUsers => [...prevUsers, newUser]);
       toast({
         title: "User Created",
         description: `${values.name} has been added as a new user.`,
@@ -98,7 +113,7 @@ export function UserManagement() {
                     <FormItem>
                       <FormLabel>Email Address</FormLabel>
                       <FormControl>
-                        <Input placeholder="e.g. john.doe@lumen.com" {...field} />
+                        <Input placeholder="e.g. john.doe@taco.vision" {...field} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -123,7 +138,7 @@ export function UserManagement() {
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>Role</FormLabel>
-                      <Select onValueChange={field.onChange} defaultValue={field.value}>
+                      <Select onValuechange={field.onChange} defaultValue={field.value}>
                         <FormControl>
                           <SelectTrigger>
                             <SelectValue placeholder="Select a role" />
@@ -169,12 +184,19 @@ export function UserManagement() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {users.map((user) => (
+                {isClient ? formattedUsers.map((user) => (
                   <TableRow key={user.id}>
                     <TableCell className="font-medium">{user.name}</TableCell>
                     <TableCell>{user.email}</TableCell>
                     <TableCell>{user.role}</TableCell>
-                    <TableCell>{format(user.lastLogin, "PPP")}</TableCell>
+                    <TableCell>{user.lastLogin}</TableCell>
+                  </TableRow>
+                )) : users.map(user => (
+                  <TableRow key={user.id}>
+                    <TableCell className="font-medium">{user.name}</TableCell>
+                    <TableCell>{user.email}</TableCell>
+                    <TableCell>{user.role}</TableCell>
+                    <TableCell>Loading...</TableCell>
                   </TableRow>
                 ))}
               </TableBody>
