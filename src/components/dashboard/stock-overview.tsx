@@ -1,21 +1,24 @@
 "use client";
 
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, ResponsiveContainer } from 'recharts';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { inventoryData } from '@/lib/data';
+import { inventoryData as initialInventoryData } from '@/lib/data';
 import { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 import { Package, TrendingDown, TrendingUp } from 'lucide-react';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import type { InventoryItem } from '@/lib/data';
 
 export function StockOverview() {
   const [isMounted, setIsMounted] = useState(false);
+  const [inventoryData, setInventoryData] = useState<InventoryItem[]>(initialInventoryData);
 
   useEffect(() => {
     setIsMounted(true);
   }, []);
 
   const totalStock = inventoryData.reduce((acc, item) => acc + item.stock, 0);
-  const lowStockItems = inventoryData.filter(item => item.stock < item.threshold).length;
+  const lowStockItems = inventoryData.filter(item => item.stock < item.threshold);
   const overStockItems = inventoryData.filter(item => item.stock > item.threshold * 3).length;
 
   const chartData = inventoryData.map(item => ({
@@ -76,16 +79,35 @@ export function StockOverview() {
             </Card>
             </motion.div>
             <motion.div variants={itemVariants}>
-            <Card>
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Low Stock Items</CardTitle>
-                <TrendingDown className="h-4 w-4 text-destructive" />
-                </CardHeader>
-                <CardContent>
-                <div className="text-2xl font-bold">{lowStockItems}</div>
-                <p className="text-xs text-muted-foreground">items below reorder threshold</p>
-                </CardContent>
-            </Card>
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Card className="hover:border-primary/50 transition-colors">
+                      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                      <CardTitle className="text-sm font-medium">Low Stock Items</CardTitle>
+                      <TrendingDown className="h-4 w-4 text-destructive" />
+                      </CardHeader>
+                      <CardContent>
+                      <div className="text-2xl font-bold">{lowStockItems.length}</div>
+                      <p className="text-xs text-muted-foreground">items below reorder threshold</p>
+                      </CardContent>
+                  </Card>
+                </TooltipTrigger>
+                <TooltipContent>
+                  {lowStockItems.length > 0 ? (
+                    <ul className="space-y-1">
+                      {lowStockItems.map(item => (
+                        <li key={item.id} className="text-sm">
+                          <span className="font-semibold">{item.name}</span>: {item.stock}/{item.threshold}
+                        </li>
+                      ))}
+                    </ul>
+                  ) : (
+                    <p>No items are low on stock.</p>
+                  )}
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
             </motion.div>
             <motion.div variants={itemVariants}>
             <Card>
@@ -113,7 +135,7 @@ export function StockOverview() {
                     <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
                     <XAxis dataKey="name" stroke="hsl(var(--muted-foreground))" fontSize={12} tickLine={false} axisLine={false} />
                     <YAxis stroke="hsl(var(--muted-foreground))" fontSize={12} tickLine={false} axisLine={false} />
-                    <Tooltip
+                    <RechartsTooltip
                         cursor={{ fill: 'hsl(var(--accent))' }}
                         contentStyle={{
                             background: 'hsl(var(--background))',
