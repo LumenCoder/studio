@@ -36,8 +36,7 @@ export function AppSidebar() {
         setIsNavigating(true);
         setTimeout(() => {
             router.push(href);
-            // The loading state will be turned off by a component on the target page
-        }, 1200); // Simulate loading time
+        }, 700); // Wait for animation to start
     }
   };
 

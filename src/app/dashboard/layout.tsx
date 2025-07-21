@@ -3,9 +3,10 @@
 import { AppSidebar } from '@/components/dashboard/app-sidebar';
 import { Header } from '@/components/dashboard/header';
 import { SidebarProvider, SidebarInset } from '@/components/ui/sidebar';
-import { useState, createContext, useContext, ReactNode } from 'react';
+import { useState, createContext, useContext, ReactNode, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { TacoIcon } from '@/components/icons';
+import { usePathname } from 'next/navigation';
 
 type AppContextType = {
   isNavigating: boolean;
@@ -24,6 +25,16 @@ export const useAppContext = () => {
 
 const AppProvider = ({ children }: { children: ReactNode }) => {
   const [isNavigating, setIsNavigating] = useState(false);
+  const pathname = usePathname();
+
+  useEffect(() => {
+    // Turn off navigation loading state whenever the path changes
+    if (isNavigating) {
+      setIsNavigating(false);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [pathname]);
+
   return (
     <AppContext.Provider value={{ isNavigating, setIsNavigating }}>
       {children}
