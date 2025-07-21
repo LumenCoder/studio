@@ -70,4 +70,8 @@ export function InventoryTable({ inventory }: InventoryTableProps) {
                </TableRow>
             )}
           </AnimatePresence>
-        
+        </TableBody>
+      </Table>
+    </ScrollArea>
+  );
+}
