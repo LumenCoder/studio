@@ -8,6 +8,7 @@ import {
   SidebarMenuItem,
   SidebarMenuButton,
   SidebarFooter,
+  SidebarTitle,
 } from "@/components/ui/sidebar";
 import { TacoIcon } from "@/components/icons";
 import { Separator } from "@/components/ui/separator";
@@ -26,19 +27,17 @@ export function AppSidebar() {
   const pathname = usePathname();
 
   const menuItems = [
-    { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
-    { href: "#", label: "Inventory", icon: Package },
+    { href: "/dashboard", label: "Overview", icon: LayoutDashboard },
+    { href: "/dashboard/inventory", label: "Inventory", icon: Package },
     { href: "/dashboard/users", label: "Users", icon: Users },
-    { href: "#", label: "Settings", icon: Settings },
+    { href: "/dashboard/settings", label: "Settings", icon: Settings },
   ];
 
   return (
     <Sidebar>
       <SidebarHeader>
-        <div className="flex items-center gap-2">
-          <TacoIcon className="w-8 h-8 text-primary" />
-          <span className="text-xl font-semibold">Taco Vision</span>
-        </div>
+        <TacoIcon className="w-8 h-8 text-primary" />
+        <SidebarTitle>Taco Vision</SidebarTitle>
       </SidebarHeader>
       <SidebarContent>
         <SidebarMenu>
@@ -67,7 +66,7 @@ export function AppSidebar() {
           </Avatar>
           <div className="flex flex-col text-sm group-data-[collapsible=icon]:hidden">
             <span className="font-medium">Admin User</span>
-            <span className="text-xs text-muted-foreground">admin@taco.vision</span>
+            <span className="text-xs text-muted-foreground">ID: 25</span>
           </div>
         </div>
         <SidebarMenu>

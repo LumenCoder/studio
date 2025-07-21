@@ -46,13 +46,12 @@ export const budgetData = {
 export type User = {
   id: string;
   name: string;
-  email: string;
   role: 'Team Training' | 'Manager' | 'Admin Manager';
   lastLogin: Date;
 };
 
 export const userData: User[] = [
-    { id: '1', name: 'Admin User', email: 'admin@lumen.com', role: 'Admin Manager', lastLogin: new Date() },
-    { id: '2', name: 'John Smith', email: 'john.smith@lumen.com', role: 'Manager', lastLogin: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000) },
-    { id: '3', name: 'Jane Doe', email: 'jane.doe@lumen.com', role: 'Team Training', lastLogin: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000) },
+    { id: '25', name: 'Admin User', role: 'Admin Manager', lastLogin: new Date() },
+    { id: '1001', name: 'John Smith', role: 'Manager', lastLogin: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000) },
+    { id: '1002', name: 'Jane Doe', role: 'Team Training', lastLogin: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000) },
 ];

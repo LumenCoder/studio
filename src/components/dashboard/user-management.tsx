@@ -5,8 +5,9 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { useToast } from "@/hooks/use-toast";
-import { userData, type User } from "@/lib/data";
+import { userData as initialUserData, type User } from "@/lib/data";
 import { format } from "date-fns";
+import { motion } from "framer-motion";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -18,7 +19,6 @@ import { UserPlus, Users, Loader2 } from "lucide-react";
 
 const userFormSchema = z.object({
   name: z.string().min(2, { message: "Name must be at least 2 characters." }),
-  email: z.string().email({ message: "Please enter a valid email." }),
   password: z.string().min(8, { message: "Password must be at least 8 characters." }),
   role: z.enum(["Team Training", "Manager", "Admin Manager"], {
     required_error: "You need to select a user role.",
@@ -31,26 +31,30 @@ type FormattedUser = Omit<User, 'lastLogin'> & {
 
 export function UserManagement() {
   const { toast } = useToast();
-  const [users, setUsers] = useState<User[]>(userData);
+  const [users, setUsers] = useState<User[]>(initialUserData);
   const [formattedUsers, setFormattedUsers] = useState<FormattedUser[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [isClient, setIsClient] = useState(false);
 
   useEffect(() => {
     setIsClient(true);
-    const newFormattedUsers = users.map(user => ({
-      ...user,
-      lastLogin: format(user.lastLogin, "PPP"),
-    }));
-    setFormattedUsers(newFormattedUsers);
-  }, [users]);
+  }, []);
+
+  useEffect(() => {
+    if (isClient) {
+        const newFormattedUsers = users.map(user => ({
+        ...user,
+        lastLogin: format(user.lastLogin, "PPP"),
+        }));
+        setFormattedUsers(newFormattedUsers);
+    }
+  }, [users, isClient]);
 
 
   const form = useForm<z.infer<typeof userFormSchema>>({
     resolver: zodResolver(userFormSchema),
     defaultValues: {
       name: "",
-      email: "",
       password: "",
       role: "Team Training",
     },
@@ -58,12 +62,11 @@ export function UserManagement() {
 
   function onSubmit(values: z.infer<typeof userFormSchema>) {
     setIsLoading(true);
-    // Simulate API call to create user
     setTimeout(() => {
       const newUser: User = {
-        id: (users.length + 1).toString(),
+        id: (Math.floor(Math.random() * 90000) + 10000).toString(), // Random 5-digit ID
         name: values.name,
-        email: values.email,
+        // In a real app, password would be hashed and not stored in state
         role: values.role,
         lastLogin: new Date(),
       };
@@ -76,6 +79,17 @@ export function UserManagement() {
       setIsLoading(false);
     }, 1000);
   }
+
+  const tableVariants = {
+    hidden: { opacity: 0 },
+    visible: { opacity: 1, transition: { staggerChildren: 0.05 } }
+  };
+
+  const rowVariants = {
+    hidden: { opacity: 0, y: 20 },
+    visible: { opacity: 1, y: 0 }
+  };
+
 
   return (
     <div className="grid gap-6 lg:grid-cols-5">
@@ -108,19 +122,6 @@ export function UserManagement() {
                 />
                 <FormField
                   control={form.control}
-                  name="email"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Email Address</FormLabel>
-                      <FormControl>
-                        <Input placeholder="e.g. john.doe@taco.vision" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={form.control}
                   name="password"
                   render={({ field }) => (
                     <FormItem>
@@ -138,7 +139,7 @@ export function UserManagement() {
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>Role</FormLabel>
-                      <Select onValuechange={field.onChange} defaultValue={field.value}>
+                      <Select onValueChange={field.onChange} defaultValue={field.value}>
                         <FormControl>
                           <SelectTrigger>
                             <SelectValue placeholder="Select a role" />
@@ -177,29 +178,38 @@ export function UserManagement() {
             <Table>
               <TableHeader>
                 <TableRow>
+                  <TableHead>User ID</TableHead>
                   <TableHead>Name</TableHead>
-                  <TableHead>Email</TableHead>
                   <TableHead>Role</TableHead>
                   <TableHead>Last Login</TableHead>
                 </TableRow>
               </TableHeader>
-              <TableBody>
+              <motion.tbody
+                variants={tableVariants}
+                initial="hidden"
+                animate="visible"
+                className="[&_tr:last-child]:border-0"
+              >
                 {isClient ? formattedUsers.map((user) => (
-                  <TableRow key={user.id}>
-                    <TableCell className="font-medium">{user.name}</TableCell>
-                    <TableCell>{user.email}</TableCell>
+                  <motion.tr
+                    key={user.id}
+                    variants={rowVariants}
+                    className="border-b transition-colors hover:bg-muted/50 data-[state=selected]:bg-muted"
+                  >
+                    <TableCell className="font-medium">{user.id}</TableCell>
+                    <TableCell>{user.name}</TableCell>
                     <TableCell>{user.role}</TableCell>
                     <TableCell>{user.lastLogin}</TableCell>
-                  </TableRow>
+                  </motion.tr>
                 )) : users.map(user => (
                   <TableRow key={user.id}>
-                    <TableCell className="font-medium">{user.name}</TableCell>
-                    <TableCell>{user.email}</TableCell>
+                    <TableCell className="font-medium">{user.id}</TableCell>
+                    <TableCell>{user.name}</TableCell>
                     <TableCell>{user.role}</TableCell>
                     <TableCell>Loading...</TableCell>
                   </TableRow>
                 ))}
-              </TableBody>
+              </motion.tbody>
             </Table>
           </CardContent>
         </Card>

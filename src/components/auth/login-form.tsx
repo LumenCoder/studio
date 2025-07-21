@@ -21,8 +21,8 @@ import { useToast } from "@/hooks/use-toast";
 import { Loader2 } from "lucide-react";
 
 const formSchema = z.object({
-  username: z.string().min(1, {
-    message: "Username is required.",
+  userId: z.string().min(1, {
+    message: "User ID is required.",
   }),
   pin: z.string().min(4, {
     message: "PIN must be at least 4 digits.",
@@ -37,22 +37,21 @@ export function LoginForm() {
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      username: "",
+      userId: "",
       pin: "",
     },
   });
 
   function onSubmit(values: z.infer<typeof formSchema>) {
     setIsLoading(true);
-    // Simulate API call
     setTimeout(() => {
-      if (values.username === "admin" && values.pin === "1234") {
+      if (values.userId === "25" && values.pin === "2525") {
         router.push("/dashboard");
       } else {
         toast({
           variant: "destructive",
           title: "Login Failed",
-          description: "Invalid username or PIN.",
+          description: "Invalid User ID or PIN.",
         });
         setIsLoading(false);
       }
@@ -70,12 +69,12 @@ export function LoginForm() {
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
             <FormField
               control={form.control}
-              name="username"
+              name="userId"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Username</FormLabel>
+                  <FormLabel>User ID</FormLabel>
                   <FormControl>
-                    <Input placeholder="e.g. admin" {...field} />
+                    <Input placeholder="e.g. 25" {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -88,7 +87,7 @@ export function LoginForm() {
                 <FormItem>
                   <FormLabel>PIN</FormLabel>
                   <FormControl>
-                    <Input type="password" placeholder="e.g. 1234" {...field} />
+                    <Input type="password" placeholder="e.g. 2525" {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>

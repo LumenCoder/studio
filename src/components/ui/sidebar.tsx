@@ -198,7 +198,7 @@ const Sidebar = React.forwardRef<
           <SheetContent
             data-sidebar="sidebar"
             data-mobile="true"
-            className="w-[--sidebar-width] bg-sidebar p-0 text-sidebar-foreground [&>button]:hidden"
+            className="w-[--sidebar-width] bg-sidebar p-0 text-sidebar-foreground"
             style={
               {
                 "--sidebar-width": SIDEBAR_WIDTH_MOBILE,
@@ -206,6 +206,7 @@ const Sidebar = React.forwardRef<
             }
             side={side}
           >
+            <SheetTitle className="sr-only">Menu</SheetTitle>
             <div className="flex h-full w-full flex-col">{children}</div>
           </SheetContent>
         </Sheet>
@@ -358,12 +359,28 @@ const SidebarHeader = React.forwardRef<
     <div
       ref={ref}
       data-sidebar="header"
-      className={cn("flex flex-col gap-2 p-2", className)}
+      className={cn("flex items-center gap-2 p-2", className)}
       {...props}
     />
   )
 })
 SidebarHeader.displayName = "SidebarHeader"
+
+const SidebarTitle = React.forwardRef<
+    HTMLSpanElement,
+    React.ComponentProps<"span">
+    >(({ className, ...props }, ref) => {
+    return (
+        <span
+        ref={ref}
+        data-sidebar="title"
+        className={cn("text-xl font-semibold", className)}
+        {...props}
+        />
+    )
+})
+SidebarTitle.displayName = "SidebarTitle"
+
 
 const SidebarFooter = React.forwardRef<
   HTMLDivElement,
@@ -759,5 +776,6 @@ export {
   SidebarRail,
   SidebarSeparator,
   SidebarTrigger,
+  SidebarTitle,
   useSidebar,
 }

@@ -1,0 +1,133 @@
+"use client";
+
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { inventoryData } from '@/lib/data';
+import { useEffect, useState } from 'react';
+import { motion } from 'framer-motion';
+import { Package, TrendingDown, TrendingUp } from 'lucide-react';
+
+export function StockOverview() {
+  const [isMounted, setIsMounted] = useState(false);
+
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
+
+  const totalStock = inventoryData.reduce((acc, item) => acc + item.stock, 0);
+  const lowStockItems = inventoryData.filter(item => item.stock < item.threshold).length;
+  const overStockItems = inventoryData.filter(item => item.stock > item.threshold * 3).length;
+
+  const chartData = inventoryData.map(item => ({
+    name: item.name,
+    stock: item.stock,
+    threshold: item.threshold,
+  })).slice(0, 7); // Show first 7 items for brevity
+
+  const containerVariants = {
+    hidden: { opacity: 0 },
+    visible: {
+      opacity: 1,
+      transition: {
+        staggerChildren: 0.1,
+      },
+    },
+  };
+
+  const itemVariants = {
+    hidden: { y: 20, opacity: 0 },
+    visible: {
+      y: 0,
+      opacity: 1,
+      transition: {
+        type: 'spring',
+        stiffness: 100,
+      },
+    },
+  };
+
+  if (!isMounted) {
+    return null; // or a loading skeleton
+  }
+
+  return (
+    <motion.div
+        variants={containerVariants}
+        initial="hidden"
+        animate="visible"
+        className="space-y-6"
+    >
+        <motion.div variants={itemVariants}>
+            <h1 className="text-3xl font-bold tracking-tight">Welcome back, Admin</h1>
+            <p className="text-muted-foreground">Here's your inventory at a glance.</p>
+        </motion.div>
+
+        <motion.div variants={containerVariants} className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+            <motion.div variants={itemVariants}>
+            <Card>
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">Total Stock</CardTitle>
+                <Package className="h-4 w-4 text-muted-foreground" />
+                </CardHeader>
+                <CardContent>
+                <div className="text-2xl font-bold">{totalStock}</div>
+                <p className="text-xs text-muted-foreground">units across all items</p>
+                </CardContent>
+            </Card>
+            </motion.div>
+            <motion.div variants={itemVariants}>
+            <Card>
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">Low Stock Items</CardTitle>
+                <TrendingDown className="h-4 w-4 text-destructive" />
+                </CardHeader>
+                <CardContent>
+                <div className="text-2xl font-bold">{lowStockItems}</div>
+                <p className="text-xs text-muted-foreground">items below reorder threshold</p>
+                </CardContent>
+            </Card>
+            </motion.div>
+            <motion.div variants={itemVariants}>
+            <Card>
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">Overstocked Items</CardTitle>
+                <TrendingUp className="h-4 w-4 text-green-500" />
+                </CardHeader>
+                <CardContent>
+                <div className="text-2xl font-bold">{overStockItems}</div>
+                <p className="text-xs text-muted-foreground">items with excess inventory</p>
+                </CardContent>
+            </Card>
+            </motion.div>
+        </motion.div>
+
+        <motion.div variants={itemVariants}>
+            <Card>
+            <CardHeader>
+                <CardTitle>Current Stock Levels</CardTitle>
+                <CardDescription>A snapshot of your current inventory items.</CardDescription>
+            </CardHeader>
+            <CardContent>
+                <ResponsiveContainer width="100%" height={350}>
+                <BarChart data={chartData}>
+                    <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+                    <XAxis dataKey="name" stroke="hsl(var(--muted-foreground))" fontSize={12} tickLine={false} axisLine={false} />
+                    <YAxis stroke="hsl(var(--muted-foreground))" fontSize={12} tickLine={false} axisLine={false} />
+                    <Tooltip
+                        cursor={{ fill: 'hsl(var(--accent))' }}
+                        contentStyle={{
+                            background: 'hsl(var(--background))',
+                            border: '1px solid hsl(var(--border))',
+                            borderRadius: 'var(--radius)',
+                        }}
+                    />
+                    <Bar dataKey="stock" fill="hsl(var(--primary))" radius={[4, 4, 0, 0]} />
+                    <Bar dataKey="threshold" fill="hsl(var(--destructive))" radius={[4, 4, 0, 0]} />
+                </BarChart>
+                </ResponsiveContainer>
+            </CardContent>
+            </Card>
+        </motion.div>
+    </motion.div>
+  );
+}
