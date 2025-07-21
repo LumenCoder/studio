@@ -4,22 +4,23 @@ export type InventoryItem = {
   category: 'Protein' | 'Dairy' | 'Produce' | 'Sauce' | 'Tortilla' | 'Packaging' | 'Drink';
   stock: number;
   threshold: number;
+  type: 'Permanent' | 'Limited Time';
 };
 
 export const inventoryData: InventoryItem[] = [
-  { id: '1', name: 'Angus Beef Patty', category: 'Protein', stock: 80, threshold: 40 },
-  { id: '2', name: 'Grilled Chicken Breast', category: 'Protein', stock: 60, threshold: 30 },
-  { id: '3', name: 'Cheddar Cheese Slices', category: 'Dairy', stock: 120, threshold: 50 },
-  { id: '4', name: 'Brioche Buns', category: 'Tortilla', stock: 150, threshold: 75 },
-  { id: '5', name: 'Crispy Onion Rings', category: 'Produce', stock: 40, threshold: 20 },
-  { id: '6', name: 'Iceberg Lettuce', category: 'Produce', stock: 30, threshold: 15 },
-  { id: '7', name: 'Sliced Tomatoes', category: 'Produce', stock: 25, threshold: 15 },
-  { id: '8', name: 'Pickle Chips', category: 'Produce', stock: 50, threshold: 25 },
-  { id: '9', 'name': 'Ketchup', 'category': 'Sauce', 'stock': 100, 'threshold': 50 },
-  { id: '10', name: 'Burger Wrappers', category: 'Packaging', stock: 500, threshold: 200 },
-  { id: '11', name: 'Fountain Drink Syrup', category: 'Drink', stock: 30, threshold: 10 },
-  { id: '12', name: 'Bacon Strips', category: 'Protein', stock: 35, threshold: 20 },
-  { id: '13', name: 'French Fries', category: 'Produce', stock: 200, threshold: 100 },
+  { id: '1', name: 'Angus Beef Patty', category: 'Protein', stock: 80, threshold: 40, type: 'Permanent' },
+  { id: '2', name: 'Grilled Chicken Breast', category: 'Protein', stock: 60, threshold: 30, type: 'Permanent' },
+  { id: '3', name: 'Cheddar Cheese Slices', category: 'Dairy', stock: 120, threshold: 50, type: 'Permanent' },
+  { id: '4', name: 'Brioche Buns', category: 'Tortilla', stock: 150, threshold: 75, type: 'Permanent' },
+  { id: '5', name: 'Spicy Jalapeno Poppers', category: 'Produce', stock: 20, threshold: 20, type: 'Limited Time' },
+  { id: '6', name: 'Iceberg Lettuce', category: 'Produce', stock: 30, threshold: 15, type: 'Permanent' },
+  { id: '7', name: 'Sliced Tomatoes', category: 'Produce', stock: 25, threshold: 15, type: 'Permanent' },
+  { id: '8', name: 'Mango Habanero Sauce', category: 'Sauce', stock: 15, threshold: 10, type: 'Limited Time' },
+  { id: '9', 'name': 'Ketchup', 'category': 'Sauce', 'stock': 100, 'threshold': 50, type: 'Permanent' },
+  { id: '10', name: 'Burger Wrappers', category: 'Packaging', stock: 500, threshold: 200, type: 'Permanent' },
+  { id: '11', name: 'Fountain Drink Syrup', category: 'Drink', stock: 30, threshold: 10, type: 'Permanent' },
+  { id: '12', name: 'Bacon Strips', category: 'Protein', stock: 35, threshold: 20, type: 'Permanent' },
+  { id: '13', name: 'French Fries', category: 'Produce', stock: 200, threshold: 100, type: 'Permanent' },
 ];
 
 export type AuditLog = {

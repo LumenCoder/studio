@@ -29,12 +29,14 @@ import {
 import { Form, FormControl, FormField, FormItem, FormMessage } from "../ui/form";
 import { useToast } from "@/hooks/use-toast";
 import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover";
+import { RadioGroup, RadioGroupItem } from "../ui/radio-group";
 
 const itemSchema = z.object({
   name: z.string().min(3, "Item name must be at least 3 characters."),
   category: z.enum(['Protein', 'Dairy', 'Produce', 'Sauce', 'Tortilla', 'Packaging', 'Drink']),
   stock: z.coerce.number().min(0, "Stock cannot be negative."),
   threshold: z.coerce.number().min(0, "Threshold cannot be negative."),
+  type: z.enum(['Permanent', 'Limited Time']),
 });
 
 type InventoryActionsProps = {
@@ -66,6 +68,7 @@ export function InventoryActions({
       name: "",
       stock: 0,
       threshold: 0,
+      type: 'Permanent',
     },
   });
 
@@ -182,6 +185,36 @@ export function InventoryActions({
                       </Select>
                     <FormMessage />
                   </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="type"
+                render={({ field }) => (
+                    <FormItem className="space-y-3">
+                    <Label>Item Type</Label>
+                    <FormControl>
+                        <RadioGroup
+                        onValueChange={field.onChange}
+                        defaultValue={field.value}
+                        className="flex space-x-4"
+                        >
+                        <FormItem className="flex items-center space-x-2 space-y-0">
+                            <FormControl>
+                            <RadioGroupItem value="Permanent" />
+                            </FormControl>
+                            <Label className="font-normal">Permanent</Label>
+                        </FormItem>
+                        <FormItem className="flex items-center space-x-2 space-y-0">
+                            <FormControl>
+                            <RadioGroupItem value="Limited Time" />
+                            </FormControl>
+                            <Label className="font-normal">Limited Time</Label>
+                        </FormItem>
+                        </RadioGroup>
+                    </FormControl>
+                    <FormMessage />
+                    </FormItem>
                 )}
               />
               <FormField
