@@ -1,14 +1,3 @@
-export const LogoIcon = (props: React.SVGProps<SVGSVGElement>) => (
-    <svg
-      xmlns="http://www.w3.org/2000/svg"
-      viewBox="0 0 256 256"
-      fill="currentColor"
-      {...props}
-    >
-        <path d="M216 40H40C26.75 40 16 50.75 16 64V216c0 13.25 10.75 24 24 24H216c13.25 0 24-10.75 24-24V64c0-13.25-10.75-24-24-24ZM98.1 184.68l-30.7-30.7c-2.34-2.34-2.34-6.14 0-8.48l14.14-14.14c2.34-2.34 6.14-2.34 8.48 0L129.5 170.85l51.08-51.08c2.34-2.34 6.14-2.34 8.48 0l14.14 14.14c2.34 2.34 2.34 6.14 0 8.48l-73.18 73.18c-2.34 2.34-6.14 2.34-8.48 0Z" />
-    </svg>
-);
-
 export const TacoIcon = (props: React.SVGProps<SVGSVGElement>) => (
     <svg
       xmlns="http://www.w3.org/2000/svg"
