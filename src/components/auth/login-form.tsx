@@ -50,19 +50,29 @@ export function LoginForm({ onLoginStart, onLoginResult }: LoginFormProps) {
     setIsLoading(true);
     onLoginStart();
 
+    // Simulate network delay
     setTimeout(() => {
-      if (values.userId === "25" && values.pin === "2525") {
-        onLoginResult(true);
-        // It's good practice to reset loading state even on success
-        setIsLoading(false); 
-      } else {
+      try {
+        if (values.userId === "25" && values.pin === "2525") {
+          onLoginResult(true);
+        } else {
+          toast({
+            variant: "destructive",
+            title: "Login Failed",
+            description: "Invalid User ID or PIN.",
+          });
+          onLoginResult(false);
+        }
+      } catch (error) {
         toast({
           variant: "destructive",
-          title: "Login Failed",
-          description: "Invalid User ID or PIN.",
+          title: "An Error Occurred",
+          description: "Something went wrong. Please try again.",
         });
-        setIsLoading(false);
         onLoginResult(false);
+      } finally {
+        // This ensures the loading state inside the form is always reset
+        setIsLoading(false);
       }
     }, 1000);
   }
