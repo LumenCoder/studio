@@ -10,7 +10,7 @@ import type { User } from "@/lib/types";
 import { format } from "date-fns";
 import { motion } from "framer-motion";
 import { db } from "@/lib/firebase";
-import { collection, addDoc, onSnapshot, serverTimestamp } from "firebase/firestore";
+import { collection, addDoc, onSnapshot, serverTimestamp, query, where, getDocs } from "firebase/firestore";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -42,7 +42,7 @@ export function UserManagement() {
 
   useEffect(() => {
     const unsubscribe = onSnapshot(collection(db, "users"), (snapshot) => {
-      const usersData = snapshot.docs.map(doc => ({ ...doc.data(), id: doc.id } as User));
+      const usersData = snapshot.docs.map(doc => ({ ...doc.data(), id: doc.data().id } as User));
       setUsers(usersData);
       const newFormattedUsers = usersData.map(user => ({
         ...user,
@@ -67,6 +67,20 @@ export function UserManagement() {
 
   async function onSubmit(values: z.infer<typeof userFormSchema>) {
     setIsLoading(true);
+
+    const q = query(collection(db, "users"), where("id", "==", values.id));
+    const querySnapshot = await getDocs(q);
+
+    if (!querySnapshot.empty) {
+        toast({
+            variant: "destructive",
+            title: "Error",
+            description: "User number already exists.",
+        });
+        setIsLoading(false);
+        return;
+    }
+
     try {
       await addDoc(collection(db, "users"), {
         id: values.id,
@@ -85,7 +99,7 @@ export function UserManagement() {
         toast({
             variant: "destructive",
             title: "Error",
-            description: "Could not create user. User number may already exist.",
+            description: "Could not create user. Please try again.",
         });
     }
     setIsLoading(false);

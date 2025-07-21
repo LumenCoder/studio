@@ -46,7 +46,7 @@ import { Trash2, Edit, Save, DollarSign, BarChart, FileSpreadsheet, Loader2, Inf
 import type { User, InventoryItem } from "@/lib/types";
 import { runShipmentCalculation, type ShipmentCalculationOutput } from "@/lib/actions";
 import { db } from "@/lib/firebase";
-import { collection, doc, onSnapshot, deleteDoc, setDoc } from "firebase/firestore";
+import { collection, doc, onSnapshot, deleteDoc, setDoc, query, where, getDocs } from "firebase/firestore";
 
 const budgetSchema = z.object({
   budget: z.coerce.number().positive("Budget must be positive."),
@@ -69,7 +69,7 @@ export function ManagerSetup() {
 
   useEffect(() => {
     const unsubUsers = onSnapshot(collection(db, "users"), (snapshot) => {
-      setUsers(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as User)));
+      setUsers(snapshot.docs.map(doc => ({ ...doc.data(), id: doc.id } as User)));
       setIsLoading(false);
     });
 
@@ -134,7 +134,21 @@ export function ManagerSetup() {
 
   const handleDeleteUser = async (userId: string) => {
     try {
-      await deleteDoc(doc(db, "users", userId));
+      const q = query(collection(db, "users"), where("id", "==", userId));
+      const querySnapshot = await getDocs(q);
+      
+      if (querySnapshot.empty) {
+         toast({
+          variant: "destructive",
+          title: "Delete Failed",
+          description: "User not found.",
+        });
+        return;
+      }
+      
+      const userDoc = querySnapshot.docs[0];
+      await deleteDoc(doc(db, "users", userDoc.id));
+
       toast({
           title: "User Deleted",
           description: `User with ID ${userId} has been removed.`,
@@ -264,7 +278,7 @@ export function ManagerSetup() {
                           </Button>
                           <AlertDialog>
                               <AlertDialogTrigger asChild>
-                                  <Button variant="destructive" size="icon" disabled={user.role === 'Admin Manager'}>
+                                  <Button variant="destructive" size="icon" disabled={user.role === 'Admin Manager' || user.id === '25'}>
                                       <Trash2 className="h-4 w-4" />
                                   </Button>
                               </AlertDialogTrigger>
