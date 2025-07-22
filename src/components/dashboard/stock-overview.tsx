@@ -4,15 +4,16 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { useEffect, useState, useMemo } from 'react';
 import { motion } from 'framer-motion';
-import { Package, TrendingDown, TrendingUp, Loader2, Info, CalendarCheck, Clock, CalendarX } from 'lucide-react';
+import { Package, TrendingDown, TrendingUp, Info, CalendarCheck, Clock, CalendarX } from 'lucide-react';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
-import type { InventoryItem, Schedule, ScheduleEntry } from '@/lib/types';
-import { collection, onSnapshot, doc, query, orderBy, limit } from 'firebase/firestore';
+import type { InventoryItem, Schedule } from '@/lib/types';
+import { collection, onSnapshot, doc } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import { Skeleton } from '../ui/skeleton';
 import { useAuth } from '../auth/auth-provider';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '../ui/accordion';
 import { Progress } from '../ui/progress';
+import { getStartOfWeek } from '@/lib/utils';
 
 const DAYS_OF_WEEK = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
 
@@ -50,12 +51,18 @@ export function StockOverview() {
         checkAllLoaded();
     });
 
-    const q = query(collection(db, "schedules"), orderBy("uploadedAt", "desc"), limit(1));
-    scheduleUnsub = onSnapshot(q, (querySnapshot) => {
-      if (!querySnapshot.empty) {
-        const latestSchedule = querySnapshot.docs[0].data() as Schedule;
-        latestSchedule.id = querySnapshot.docs[0].id;
+    const today = new Date();
+    const startOfWeek = getStartOfWeek(today, 3); // 3 for Wednesday
+    const weekId = `week-${startOfWeek.getFullYear()}-${(startOfWeek.getMonth() + 1).toString().padStart(2, '0')}-${startOfWeek.getDate().toString().padStart(2, '0')}`;
+    const scheduleDocRef = doc(db, "schedules", weekId);
+
+    scheduleUnsub = onSnapshot(scheduleDocRef, (docSnap) => {
+      if (docSnap.exists()) {
+        const latestSchedule = docSnap.data() as Schedule;
+        latestSchedule.id = docSnap.id;
         setSchedule(latestSchedule);
+      } else {
+        setSchedule(null);
       }
       checkAllLoaded();
     }, (error) => {
@@ -64,9 +71,9 @@ export function StockOverview() {
     });
 
     return () => {
-        inventoryUnsub();
-        settingsUnsub();
-        scheduleUnsub();
+        inventoryUnsub && inventoryUnsub();
+        settingsUnsub && settingsUnsub();
+        scheduleUnsub && scheduleUnsub();
     };
   }, []);
 
@@ -231,7 +238,7 @@ export function StockOverview() {
             <CardContent>
                 {loading ? (
                     <div className="flex justify-center items-center h-[350px]">
-                      <Loader2 className="h-8 w-8 animate-spin" />
+                      <Skeleton className="h-8 w-8 animate-spin" />
                     </div>
                 ) : inventory.length > 0 ? (
                     <Accordion type="single" collapsible className="w-full">

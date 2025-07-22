@@ -5,14 +5,15 @@ import { useState, useEffect, useMemo } from 'react';
 import { useAuth } from '@/components/auth/auth-provider';
 import type { Schedule } from '@/lib/types';
 import { db } from '@/lib/firebase';
-import { collection, query, orderBy, limit, onSnapshot } from "firebase/firestore";
+import { collection, query, where, getDocs, doc, onSnapshot } from "firebase/firestore";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Loader2, CalendarX2, Info, Users, Clock } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '../ui/accordion';
 import { Badge } from '@/components/ui/badge';
+import { getStartOfWeek, parseTime } from '@/lib/utils';
 
-const DAYS_OF_WEEK = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+const DAYS_OF_WEEK_ORDER = ['Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday', 'Monday', 'Tuesday'];
 
 export function MySchedule() {
   const { user } = useAuth();
@@ -20,12 +21,17 @@ export function MySchedule() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const q = query(collection(db, "schedules"), orderBy("uploadedAt", "desc"), limit(1));
-    const unsubscribe = onSnapshot(q, (querySnapshot) => {
-      if (!querySnapshot.empty) {
-        const latestSchedule = querySnapshot.docs[0].data() as Schedule;
-        latestSchedule.id = querySnapshot.docs[0].id;
-        setSchedule(latestSchedule);
+    const today = new Date();
+    const startOfWeek = getStartOfWeek(today, 3); // 3 for Wednesday
+    const weekId = `week-${startOfWeek.getFullYear()}-${(startOfWeek.getMonth() + 1).toString().padStart(2, '0')}-${startOfWeek.getDate().toString().padStart(2, '0')}`;
+    
+    const scheduleDocRef = doc(db, "schedules", weekId);
+    
+    const unsubscribe = onSnapshot(scheduleDocRef, (docSnap) => {
+      if (docSnap.exists()) {
+        const scheduleData = docSnap.data() as Schedule;
+        scheduleData.id = docSnap.id;
+        setSchedule(scheduleData);
       } else {
         setSchedule(null);
       }
@@ -38,18 +44,19 @@ export function MySchedule() {
     return () => unsubscribe();
   }, []);
 
+
   const myShifts = useMemo(() => {
     if (!schedule || !user) return [];
     return schedule.entries
         .filter(entry => entry.userId === user.id)
-        .sort((a,b) => DAYS_OF_WEEK.indexOf(a.dayOfWeek) - DAYS_OF_WEEK.indexOf(b.dayOfWeek));
+        .sort((a,b) => DAYS_OF_WEEK_ORDER.indexOf(a.dayOfWeek) - DAYS_OF_WEEK_ORDER.indexOf(b.dayOfWeek));
   }, [schedule, user]);
 
   const teamScheduleByDay = useMemo(() => {
     if (!schedule) return {};
     const grouped: Record<string, typeof schedule.entries> = {};
 
-    for (const day of DAYS_OF_WEEK) {
+    for (const day of DAYS_OF_WEEK_ORDER) {
         grouped[day] = [];
     }
     
@@ -60,7 +67,14 @@ export function MySchedule() {
     });
 
     for(const day in grouped) {
-        grouped[day].sort((a,b) => a.name.localeCompare(b.name));
+        grouped[day].sort((a,b) => {
+          const timeA = parseTime(a.timeRange);
+          const timeB = parseTime(b.timeRange);
+          if (timeA && timeB) {
+            return timeA.getTime() - timeB.getTime();
+          }
+          return a.name.localeCompare(b.name);
+        });
     }
 
     return grouped;
@@ -141,8 +155,8 @@ export function MySchedule() {
                 <CardDescription>Daily breakdown of who is working.</CardDescription>
             </CardHeader>
             <CardContent>
-                <Accordion type="single" collapsible className="w-full" defaultValue='Monday'>
-                  {DAYS_OF_WEEK.map(day => (
+                <Accordion type="single" collapsible className="w-full" defaultValue='Wednesday'>
+                  {DAYS_OF_WEEK_ORDER.map(day => (
                      teamScheduleByDay[day] && teamScheduleByDay[day].length > 0 && (
                         <AccordionItem value={day} key={day}>
                           <AccordionTrigger>
