@@ -176,7 +176,8 @@ export function ScheduleManagement() {
                           <TableRow>
                               <TableHead>Name</TableHead>
                               <TableHead>User ID</TableHead>
-                              <TableHead>Time and Date</TableHead>
+                              <TableHead>Day of Week</TableHead>
+                              <TableHead>Time Range</TableHead>
                               <TableHead>Hours Worked</TableHead>
                           </TableRow>
                       </TableHeader>
@@ -185,7 +186,8 @@ export function ScheduleManagement() {
                               <TableRow key={index}>
                                   <TableCell>{entry.name}</TableCell>
                                   <TableCell>{entry.userId}</TableCell>
-                                  <TableCell>{entry.timeAndDate}</TableCell>
+                                  <TableCell>{entry.dayOfWeek}</TableCell>
+                                  <TableCell>{entry.timeRange}</TableCell>
                                   <TableCell>{entry.hoursWorked}</TableCell>
                               </TableRow>
                           ))}
