@@ -10,7 +10,7 @@ import type { User } from "@/lib/types";
 import { format } from "date-fns";
 import { motion } from "framer-motion";
 import { db } from "@/lib/firebase";
-import { collection, addDoc, onSnapshot, serverTimestamp, query, where, getDocs } from "firebase/firestore";
+import { collection, addDoc, onSnapshot, serverTimestamp, query, where, getDocs, doc, setDoc } from "firebase/firestore";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -35,20 +35,19 @@ type FormattedUser = Omit<User, 'lastLogin'> & {
 
 export function UserManagement() {
   const { toast } = useToast();
-  const [users, setUsers] = useState<User[]>([]);
   const [formattedUsers, setFormattedUsers] = useState<FormattedUser[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [isUsersLoading, setIsUsersLoading] = useState(true);
 
   useEffect(() => {
+    setIsUsersLoading(true);
     const unsubscribe = onSnapshot(collection(db, "users"), (snapshot) => {
-      const usersData = snapshot.docs.map(doc => ({ ...doc.data(), id: doc.data().id } as User));
-      setUsers(usersData);
+      const usersData = snapshot.docs.map(doc => ({ ...doc.data(), docId: doc.id } as User & { docId: string }));
       const newFormattedUsers = usersData.map(user => ({
         ...user,
         lastLogin: user.lastLogin ? format(user.lastLogin.toDate(), "PPP") : 'N/A',
       }));
-      setFormattedUsers(newFormattedUsers);
+      setFormattedUsers(newFormattedUsers.sort((a,b) => parseInt(a.id) - parseInt(b.id)));
       setIsUsersLoading(false);
     });
 
@@ -213,7 +212,7 @@ export function UserManagement() {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            {isUsersLoading ? <Loader2 className="mx-auto h-8 w-8 animate-spin"/> : 
+            {isUsersLoading ? <div className="flex justify-center items-center h-48"><Loader2 className="mx-auto h-8 w-8 animate-spin"/></div> : 
             <Table>
               <TableHeader>
                 <TableRow>

@@ -18,7 +18,8 @@ export type AuditLog = {
 };
 
 export type User = {
-  id: string;
+  docId: string; // Firestore document ID
+  id: string; // User's public ID
   name: string;
   role: 'Team Training' | 'Manager' | 'Admin Manager';
   lastLogin: Timestamp;

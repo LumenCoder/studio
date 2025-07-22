@@ -91,7 +91,7 @@ export function PredictionTool() {
                 <FormItem>
                   <FormLabel>Historical Data</FormLabel>
                   <FormControl>
-                    <Textarea placeholder="e.g., Last week sales..." {...field} />
+                    <Textarea readOnly placeholder="e.g., Last week sales..." {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -126,7 +126,7 @@ export function PredictionTool() {
                 <FormItem>
                   <FormLabel>Sales Patterns</FormLabel>
                   <FormControl>
-                    <Textarea placeholder="e.g., Higher traffic on weekends..." {...field} />
+                    <Textarea readOnly placeholder="e.g., Higher traffic on weekends..." {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>

@@ -32,10 +32,13 @@ export function AuditLog() {
         return {
           ...data,
           id: doc.id,
-          timestamp: formatDistanceToNow(data.timestamp.toDate(), { addSuffix: true }),
+          timestamp: data.timestamp ? formatDistanceToNow(data.timestamp.toDate(), { addSuffix: true }) : 'Just now',
         }
       });
       setLogs(formattedLogs);
+      setLoading(false);
+    }, (error) => {
+      console.error("Error fetching audit logs: ", error);
       setLoading(false);
     });
 
@@ -73,7 +76,7 @@ export function AuditLog() {
                   <div className="flex-1">
                     <p className="text-sm">
                       <span className="font-semibold">{log.user}</span>{" "}
-                      {log.action.replace("_", " ")}{" "}
+                      {log.action.replace(/_/g, " ")}{" "}
                       <span className="font-semibold">{log.item}</span>.
                     </p>
                     <p className="text-xs text-muted-foreground">
