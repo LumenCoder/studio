@@ -14,7 +14,7 @@ import { runScheduleOcr, type ScheduleEntry } from '@/lib/actions';
 import { Alert, AlertDescription, AlertTitle } from '../ui/alert';
 import { db } from '@/lib/firebase';
 import { doc, setDoc, serverTimestamp } from "firebase/firestore";
-import { format } from "date-fns";
+import { getStartOfWeek } from '@/lib/utils';
 
 export function ScheduleManagement() {
   const { toast } = useToast();
@@ -90,7 +90,10 @@ export function ScheduleManagement() {
     }
     setIsSaving(true);
     try {
-      const weekId = `week-${format(new Date(), 'yyyy-MM-dd')}`;
+      const today = new Date();
+      const startOfWeek = getStartOfWeek(today, 3); // 3 for Wednesday
+      const weekId = `week-${startOfWeek.getFullYear()}-${(startOfWeek.getMonth() + 1).toString().padStart(2, '0')}-${startOfWeek.getDate().toString().padStart(2, '0')}`;
+
       const scheduleDocRef = doc(db, 'schedules', weekId);
       await setDoc(scheduleDocRef, {
         entries: scheduleData,
