@@ -11,7 +11,7 @@
 import {ai} from '@/ai/genkit';
 import {z} from 'genkit';
 
-export const ScheduleOcrInputSchema = z.object({
+const ScheduleOcrInputSchema = z.object({
   pdfDataUri: z
     .string()
     .describe(
@@ -20,7 +20,7 @@ export const ScheduleOcrInputSchema = z.object({
 });
 export type ScheduleOcrInput = z.infer<typeof ScheduleOcrInputSchema>;
 
-export const ScheduleEntrySchema = z.object({
+const ScheduleEntrySchema = z.object({
     name: z.string().describe("The full name of the employee."),
     userId: z.string().describe("The user ID of the employee. Should be parsed as a string to preserve leading zeros, but presented as a number."),
     timeAndDate: z.string().describe("The scheduled time and date for the shift."),
@@ -28,7 +28,7 @@ export const ScheduleEntrySchema = z.object({
 });
 export type ScheduleEntry = z.infer<typeof ScheduleEntrySchema>;
 
-export const ScheduleOcrOutputSchema = z.object({
+const ScheduleOcrOutputSchema = z.object({
   schedule: z.array(ScheduleEntrySchema).describe("An array of all schedule entries extracted from the document."),
 });
 export type ScheduleOcrOutput = z.infer<typeof ScheduleOcrOutputSchema>;
