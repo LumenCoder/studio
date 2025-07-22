@@ -3,14 +3,15 @@
 
 import { useState, useEffect, useMemo } from 'react';
 import { useAuth } from '@/components/auth/auth-provider';
-import type { Schedule, User } from '@/lib/types';
-import type { ScheduleEntry } from '@/ai/flows/schedule-ocr';
+import type { Schedule } from '@/lib/types';
 import { db } from '@/lib/firebase';
 import { collection, query, orderBy, limit, onSnapshot } from "firebase/firestore";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, ResponsiveContainer, Legend } from 'recharts';
-import { Loader2, CalendarX2, Info } from 'lucide-react';
+import { Loader2, CalendarX2, Info, Users, Clock } from 'lucide-react';
 import { motion } from 'framer-motion';
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '../ui/accordion';
+
+const DAYS_OF_WEEK = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
 
 export function MySchedule() {
   const { user } = useAuth();
@@ -38,35 +39,30 @@ export function MySchedule() {
 
   const myShifts = useMemo(() => {
     if (!schedule || !user) return [];
-    return schedule.entries.filter(entry => entry.userId === user.id);
+    return schedule.entries
+        .filter(entry => entry.userId === user.id)
+        .sort((a,b) => DAYS_OF_WEEK.indexOf(a.dayOfWeek) - DAYS_OF_WEEK.indexOf(b.dayOfWeek));
   }, [schedule, user]);
 
-  const teamScheduleChartData = useMemo(() => {
-    if (!schedule) return [];
+  const teamScheduleByDay = useMemo(() => {
+    if (!schedule) return {};
+    const grouped: Record<string, typeof schedule.entries> = {};
+
+    for (const day of DAYS_OF_WEEK) {
+        grouped[day] = [];
+    }
     
-    const dayMap: Record<string, { name: string, hours: number }> = {
-      'Monday': { name: 'Mon', hours: 0 },
-      'Tuesday': { name: 'Tue', hours: 0 },
-      'Wednesday': { name: 'Wed', hours: 0 },
-      'Thursday': { name: 'Thu', hours: 0 },
-      'Friday': { name: 'Fri', hours: 0 },
-      'Saturday': { name: 'Sat', hours: 0 },
-      'Sunday': { name: 'Sun', hours: 0 },
-    };
-
     schedule.entries.forEach(entry => {
-      const hours = parseFloat(entry.hoursWorked);
-      if (isNaN(hours)) return;
-
-      for (const day in dayMap) {
-        if (entry.timeAndDate.toLowerCase().includes(day.toLowerCase())) {
-          dayMap[day].hours += hours;
-          break;
+        if (grouped[entry.dayOfWeek]) {
+            grouped[entry.dayOfWeek].push(entry);
         }
-      }
     });
 
-    return Object.values(dayMap);
+    for(const day in grouped) {
+        grouped[day].sort((a,b) => a.name.localeCompare(b.name));
+    }
+
+    return grouped;
   }, [schedule]);
   
   const cardVariants = {
@@ -117,11 +113,14 @@ export function MySchedule() {
           </CardHeader>
           <CardContent>
             {myShifts.length > 0 ? (
-              <ul className="space-y-4">
+              <ul className="space-y-3">
                 {myShifts.map((shift, index) => (
                   <motion.li key={index} variants={itemVariants} className="p-4 bg-card-foreground/5 rounded-lg border">
-                    <p className="font-semibold text-primary">{shift.timeAndDate}</p>
-                    <p className="text-sm text-muted-foreground">Hours: {shift.hoursWorked}</p>
+                    <p className="font-semibold text-primary">{shift.dayOfWeek}</p>
+                    <div className="text-sm text-muted-foreground flex items-center gap-2 mt-1">
+                        <Clock className="w-4 h-4" />
+                        <span>{shift.timeRange} ({shift.hoursWorked} hrs)</span>
+                    </div>
                   </motion.li>
                 ))}
               </ul>
@@ -137,27 +136,37 @@ export function MySchedule() {
       <motion.div variants={itemVariants} className="lg:col-span-2">
         <Card>
             <CardHeader>
-                <CardTitle>Team Hours Overview</CardTitle>
-                <CardDescription>Total scheduled hours per day for the entire team.</CardDescription>
+                <CardTitle>Team Schedule</CardTitle>
+                <CardDescription>Daily breakdown of who is working.</CardDescription>
             </CardHeader>
             <CardContent>
-                <ResponsiveContainer width="100%" height={300}>
-                    <BarChart data={teamScheduleChartData}>
-                        <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-                        <XAxis dataKey="name" stroke="hsl(var(--muted-foreground))" fontSize={12} tickLine={false} axisLine={false} />
-                        <YAxis stroke="hsl(var(--muted-foreground))" fontSize={12} tickLine={false} axisLine={false} label={{ value: 'Hours', angle: -90, position: 'insideLeft', style: { fill: 'hsl(var(--muted-foreground))' } }} />
-                        <RechartsTooltip
-                            cursor={{ fill: 'hsl(var(--accent))' }}
-                            contentStyle={{
-                                background: 'hsl(var(--background))',
-                                border: '1px solid hsl(var(--border))',
-                                borderRadius: 'var(--radius)',
-                            }}
-                        />
-                        <Legend wrapperStyle={{ fontSize: '12px' }}/>
-                        <Bar dataKey="hours" name="Total Hours" fill="hsl(var(--primary))" radius={[4, 4, 0, 0]} />
-                    </BarChart>
-                </ResponsiveContainer>
+                <Accordion type="single" collapsible className="w-full" defaultValue='Monday'>
+                  {DAYS_OF_WEEK.map(day => (
+                     teamScheduleByDay[day] && teamScheduleByDay[day].length > 0 && (
+                        <AccordionItem value={day} key={day}>
+                          <AccordionTrigger>
+                            <div className='flex items-center gap-2'>
+                                {day}
+                                <Badge variant="secondary">{teamScheduleByDay[day].length} on shift</Badge>
+                            </div>
+                            </AccordionTrigger>
+                          <AccordionContent>
+                            <ul className="space-y-3 pt-2">
+                               {teamScheduleByDay[day].map((shift, index) => (
+                                <li key={index} className="flex items-center justify-between text-sm">
+                                    <div className='flex items-center gap-2'>
+                                      <Users className="w-4 h-4 text-muted-foreground"/>
+                                      <span>{shift.name}</span>
+                                    </div>
+                                    <span className="text-muted-foreground">{shift.timeRange}</span>
+                                </li>
+                               ))}
+                            </ul>
+                          </AccordionContent>
+                        </AccordionItem>
+                      )
+                  ))}
+                </Accordion>
             </CardContent>
         </Card>
       </motion.div>
