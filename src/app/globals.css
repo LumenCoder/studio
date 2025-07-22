@@ -3,35 +3,61 @@
 @tailwind components;
 @tailwind utilities;
 
-@keyframes move-bg {
+@keyframes gradient-animation {
   0% {
-    transform: translate(0, 0);
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
   }
   100% {
-    transform: translate(50px, 50px);
+    background-position: 0% 50%;
   }
 }
 
 body {
   font-family: 'Inter', sans-serif;
-  overflow: hidden; /* Prevent scrollbars from appearing due to pseudo-element */
+  overflow-y: auto; /* Allow vertical scrolling */
+  overflow-x: hidden; /* Prevent horizontal scrolling */
 }
 
 body::before {
   content: '';
   position: fixed;
-  top: -25px;
-  left: -25px;
-  width: calc(100vw + 50px);
-  height: calc(100vh + 50px);
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
   z-index: -1;
-  background-color: hsl(var(--background));
-  background-image:
-    radial-gradient(hsl(var(--foreground) / 0.1) 1px, transparent 1px),
-    radial-gradient(hsl(var(--foreground) / 0.1) 1px, transparent 1px);
-  background-position: 0 0, 25px 25px;
-  background-size: 50px 50px;
-  animation: move-bg 30s linear infinite;
+  background: radial-gradient(ellipse at bottom, hsl(350 90% 10% / 0.8), transparent),
+              radial-gradient(ellipse at top, hsl(26 20% 5% / 0.9), transparent),
+              linear-gradient(
+                125deg,
+                hsl(26 20% 5%),
+                hsl(350 90% 20% / 0.8) 40%,
+                hsl(240 40% 10% / 0.9) 60%,
+                hsl(26 20% 5%)
+              );
+  background-size: 200% 200%;
+  animation: gradient-animation 25s ease infinite;
+  opacity: 0.8;
+}
+
+body::after {
+    content: '';
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 200vw;
+    height: 200vh;
+    z-index: -2;
+    background-image: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 80 80" width="80" height="80"><circle fill="%23ffffff" cx="5" cy="5" r="0.5" opacity="0.1"></circle><circle fill="%23ffffff" cx="15" cy="25" r="0.5" opacity="0.1"></circle><circle fill="%23ffffff" cx="35" cy="45" r="0.5" opacity="0.1"></circle><circle fill="%23ffffff" cx="55" cy="65" r="0.5" opacity="0.1"></circle><circle fill="%23ffffff" cx="75" cy="5" r="0.5" opacity="0.1"></circle><circle fill="%23ffffff" cx="65" cy="25" r="0.5" opacity="0.1"></circle><circle fill="%23ffffff" cx="45" cy="45" r="0.5" opacity="0.1"></circle><circle fill="%23ffffff" cx="25" cy="65" r="0.5" opacity="0.1"></circle></svg>');
+    animation: move-stars 150s linear infinite;
+}
+
+@keyframes move-stars {
+  from {transform: translate(0, 0);}
+  to {transform: translate(-100vw, -100vh);}
 }
 
 

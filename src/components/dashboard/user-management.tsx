@@ -1,5 +1,4 @@
 
-
 "use client";
 
 import { useState, useEffect } from "react";
@@ -21,6 +20,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { UserPlus, Users, Loader2 } from "lucide-react";
 import { useAuth } from "../auth/auth-provider";
+import { Skeleton } from "../ui/skeleton";
 
 const userFormSchema = z.object({
   name: z.string().min(2, { message: "Name must be at least 2 characters." }),
@@ -38,7 +38,7 @@ type FormattedUser = Omit<User, 'lastLogin'> & {
 export function UserManagement() {
   const { toast } = useToast();
   const [formattedUsers, setFormattedUsers] = useState<FormattedUser[]>([]);
-  const [isLoading, setIsLoading] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [isUsersLoading, setIsUsersLoading] = useState(true);
   const { user: currentUser } = useAuth();
   const canCreateAdmins = currentUser?.role === 'Admin Manager';
@@ -69,7 +69,7 @@ export function UserManagement() {
   });
 
   async function onSubmit(values: z.infer<typeof userFormSchema>) {
-    setIsLoading(true);
+    setIsSubmitting(true);
 
     const q = query(collection(db, "users"), where("id", "==", values.id));
     const querySnapshot = await getDocs(q);
@@ -80,7 +80,7 @@ export function UserManagement() {
             title: "Error",
             description: "User number already exists.",
         });
-        setIsLoading(false);
+        setIsSubmitting(false);
         return;
     }
 
@@ -105,8 +105,13 @@ export function UserManagement() {
             description: "Could not create user. Please try again.",
         });
     }
-    setIsLoading(false);
+    setIsSubmitting(false);
   }
+
+  const cardVariants = {
+    hidden: { opacity: 0, y: 20 },
+    visible: { opacity: 1, y: 0, transition: { duration: 0.5 } },
+  };
 
   const tableVariants = {
     hidden: { opacity: 0 },
@@ -114,14 +119,27 @@ export function UserManagement() {
   };
 
   const rowVariants = {
-    hidden: { opacity: 0, y: 20 },
+    hidden: { opacity: 0, y: 10 },
     visible: { opacity: 1, y: 0 }
   };
+  
+  const UserSkeleton = () => (
+    <TableRow>
+        <TableCell><Skeleton className="h-4 w-8" /></TableCell>
+        <TableCell><Skeleton className="h-4 w-32" /></TableCell>
+        <TableCell><Skeleton className="h-4 w-24" /></TableCell>
+        <TableCell><Skeleton className="h-4 w-24" /></TableCell>
+    </TableRow>
+  );
 
 
   return (
-    <div className="grid gap-6 lg:grid-cols-5">
-      <div className="lg:col-span-2">
+    <motion.div 
+      initial="hidden"
+      animate="visible"
+      variants={{ visible: { transition: { staggerChildren: 0.2 } } }}
+      className="grid gap-6 lg:grid-cols-5">
+      <motion.div variants={cardVariants} className="lg:col-span-2">
         <Card className="bg-card">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
@@ -196,15 +214,15 @@ export function UserManagement() {
                     </FormItem>
                   )}
                 />
-                <Button type="submit" className="w-full" disabled={isLoading}>
-                    {isLoading ? <Loader2 className="animate-spin" /> : "Create User"}
+                <Button type="submit" className="w-full" disabled={isSubmitting}>
+                    {isSubmitting ? <Loader2 className="animate-spin" /> : "Create User"}
                 </Button>
               </form>
             </Form>
           </CardContent>
         </Card>
-      </div>
-      <div className="lg:col-span-3">
+      </motion.div>
+      <motion.div variants={cardVariants} className="lg:col-span-3">
         <Card className="bg-card">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
@@ -216,7 +234,6 @@ export function UserManagement() {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            {isUsersLoading ? <div className="flex justify-center items-center h-48"><Loader2 className="mx-auto h-8 w-8 animate-spin"/></div> : 
             <Table>
               <TableHeader>
                 <TableRow>
@@ -232,7 +249,14 @@ export function UserManagement() {
                 animate="visible"
                 className="[&_tr:last-child]:border-0"
               >
-                {formattedUsers.map((user) => (
+                {isUsersLoading ? (
+                    <>
+                        <UserSkeleton />
+                        <UserSkeleton />
+                        <UserSkeleton />
+                    </>
+                ) :
+                (formattedUsers.map((user) => (
                   <motion.tr
                     key={user.id}
                     variants={rowVariants}
@@ -243,13 +267,12 @@ export function UserManagement() {
                     <TableCell>{user.role}</TableCell>
                     <TableCell>{user.lastLogin}</TableCell>
                   </motion.tr>
-                ))}
+                )))}
               </motion.tbody>
             </Table>
-            }
           </CardContent>
         </Card>
-      </div>
-    </div>
+      </motion.div>
+    </motion.div>
   );
 }

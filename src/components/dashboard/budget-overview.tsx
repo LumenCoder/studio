@@ -1,3 +1,4 @@
+
 import {
   Card,
   CardContent,
@@ -10,6 +11,7 @@ import { useEffect, useState } from "react";
 import { doc, onSnapshot } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { Skeleton } from "../ui/skeleton";
+import { motion } from "framer-motion";
 
 type BudgetData = {
   budget: number;
@@ -35,39 +37,25 @@ export function BudgetOverview() {
     return () => unsubscribe();
   }, []);
 
-  if (loading) {
-    return (
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <DollarSign className="w-6 h-6" />
-            Budget Overview
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-2">
+  const cardContent = () => {
+    if (loading) {
+      return (
+        <div className="space-y-2">
           <Skeleton className="h-4 w-1/2" />
           <Skeleton className="h-6 w-3/4" />
           <Skeleton className="h-2 w-full mt-4" />
           <Skeleton className="h-3 w-2/3 mt-2" />
-        </CardContent>
-      </Card>
-    )
-  }
+        </div>
+      );
+    }
   
-  const spent = budgetData?.spent ?? 0;
-  const budget = budgetData?.budget ?? 0;
-  const period = budgetData?.period ?? 'Weekly';
-  const percentage = budget > 0 ? (spent / budget) * 100 : 0;
-
-  return (
-    <Card>
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <DollarSign className="w-6 h-6" />
-          Budget Overview
-        </CardTitle>
-      </CardHeader>
-      <CardContent>
+    const spent = budgetData?.spent ?? 0;
+    const budget = budgetData?.budget ?? 0;
+    const period = budgetData?.period ?? 'Weekly';
+    const percentage = budget > 0 ? (spent / budget) * 100 : 0;
+  
+    return (
+      <>
         <div className="text-sm text-muted-foreground">
           {period} Spending
         </div>
@@ -85,7 +73,27 @@ export function BudgetOverview() {
             ? "Warning: Approaching budget limit."
             : "Budget is within normal range."}
         </p>
-      </CardContent>
-    </Card>
+      </>
+    )
+  }
+
+  return (
+    <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5, delay: 0.3 }}
+    >
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <DollarSign className="w-6 h-6" />
+              Budget Overview
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            {cardContent()}
+          </CardContent>
+        </Card>
+    </motion.div>
   );
 }

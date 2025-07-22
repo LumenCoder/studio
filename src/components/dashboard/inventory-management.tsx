@@ -17,6 +17,7 @@ import { getStatus } from "@/lib/utils";
 import { InventoryUpdateModal } from "./inventory-update-modal";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "../auth/auth-provider";
+import { motion } from "framer-motion";
 
 const ALL_CATEGORIES = ['Protein', 'Dairy', 'Produce', 'Sauce', 'Tortilla', 'Packaging', 'Drink'];
 
@@ -49,6 +50,10 @@ export function InventoryManagement() {
   }, []);
 
   const handleAddItem = async (newItem: Omit<InventoryItem, 'id'>) => {
+    if(isTrainee) {
+      toast({ variant: "destructive", title: "Permission Denied", description: "You are not authorized to add items."});
+      return;
+    }
     try {
       await addDoc(collection(db, "inventory"), newItem);
       await addDoc(collection(db, "auditLogs"), {
@@ -68,6 +73,10 @@ export function InventoryManagement() {
   };
 
   const handleUpdateInventory = async (updatedItems: Record<string, number>) => {
+    if(isTrainee) {
+      toast({ variant: "destructive", title: "Permission Denied", description: "You are not authorized to update inventory."});
+      return;
+    }
     const batch = writeBatch(db);
     const updatedItemNames: string[] = [];
 
@@ -113,6 +122,16 @@ export function InventoryManagement() {
         return matchesSearch && matchesCategory && matchesStatus;
       });
   }, [inventory, searchQuery, categoryFilter, statusFilter]);
+  
+  const containerVariants = {
+    hidden: { opacity: 0 },
+    visible: { opacity: 1, transition: { staggerChildren: 0.1 } },
+  };
+  
+  const itemVariants = {
+    hidden: { opacity: 0, y: 20 },
+    visible: { opacity: 1, y: 0, transition: { type: "spring", stiffness: 100 } },
+  };
 
   return (
     <>
@@ -123,8 +142,12 @@ export function InventoryManagement() {
         onUpdate={handleUpdateInventory}
         isTrainee={isTrainee}
       />
-      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-7">
-          <div className="col-span-1 lg:col-span-7 space-y-6">
+      <motion.div 
+        variants={containerVariants}
+        initial="hidden"
+        animate="visible"
+        className="grid gap-6 md:grid-cols-2 lg:grid-cols-7">
+          <motion.div variants={itemVariants} className="col-span-1 lg:col-span-7 space-y-6">
               <Card className="bg-card">
                 <CardHeader className="flex flex-col gap-4">
                   <div className="flex flex-row items-start justify-between">
@@ -164,17 +187,17 @@ export function InventoryManagement() {
                   )}
                 </CardContent>
               </Card>
-          </div>
-          <div className="col-span-1 lg:col-span-3 space-y-6">
+          </motion.div>
+          <motion.div variants={itemVariants} className="col-span-1 lg:col-span-3 space-y-6">
             <PredictionTool />
-          </div>
-          <div className="col-span-1 lg:col-span-4 space-y-6">
+          </motion.div>
+          <motion.div variants={itemVariants} className="col-span-1 lg:col-span-4 space-y-6">
             <div className="grid gap-6 md:grid-cols-2">
                 <BudgetOverview />
                 <AuditLog />
             </div>
-          </div>
-      </div>
+          </motion.div>
+      </motion.div>
     </>
   );
 }

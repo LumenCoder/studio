@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState } from "react";
@@ -35,6 +36,7 @@ import {
 import { AlertCircle, BrainCircuit, Loader2 } from "lucide-react";
 import { Skeleton } from "../ui/skeleton";
 import { Alert, AlertDescription, AlertTitle } from "../ui/alert";
+import { motion } from "framer-motion";
 
 
 const formSchema = z.object({
@@ -71,102 +73,108 @@ export function PredictionTool() {
   }
 
   return (
-    <Card className="bg-card">
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <BrainCircuit className="w-6 h-6" />
-          Predictive Analysis
-        </CardTitle>
-        <CardDescription>
-          Use AI to forecast inventory needs based on historical data.
-        </CardDescription>
-      </CardHeader>
-      <Form {...form}>
-        <form onSubmit={form.handleSubmit(onSubmit)}>
-          <CardContent className="space-y-4">
-            <FormField
-              control={form.control}
-              name="historicalData"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Historical Data</FormLabel>
-                  <FormControl>
-                    <Textarea readOnly placeholder="e.g., Last week sales..." {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name="dayOfWeek"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Day of Week</FormLabel>
-                  <Select onValueChange={field.onChange} defaultValue={field.value}>
-                    <FormControl>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select a day to forecast" />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      {["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"].map(day => (
-                        <SelectItem key={day} value={day}>{day}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name="salesPatterns"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Sales Patterns</FormLabel>
-                  <FormControl>
-                    <Textarea readOnly placeholder="e.g., Higher traffic on weekends..." {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-          </CardContent>
-          <CardFooter className="flex-col items-start gap-4">
-            <Button type="submit" disabled={isLoading} className="w-full">
-              {isLoading ? <Loader2 className="animate-spin" /> : "Generate Forecast"}
-            </Button>
-            {isLoading && (
-              <div className="w-full space-y-4">
-                <Skeleton className="h-8 w-1/3" />
-                <Skeleton className="h-6 w-full" />
-                <Skeleton className="h-8 w-1/3 mt-2" />
-                <Skeleton className="h-6 w-full" />
-              </div>
-            )}
-            {error && (
-                 <Alert variant="destructive">
-                    <AlertCircle className="h-4 w-4" />
-                    <AlertTitle>Error</AlertTitle>
-                    <AlertDescription>{error}</AlertDescription>
-                </Alert>
-            )}
-            {result && (
-              <div className="w-full space-y-4 text-sm">
-                <div>
-                  <h4 className="font-semibold text-primary">Predicted Needs</h4>
-                  <p className="mt-1 text-foreground/90">{result.predictedNeeds}</p>
-                </div>
-                <div>
-                  <h4 className="font-semibold text-amber-600 dark:text-amber-500">Potential Risks</h4>
-                  <p className="mt-1 text-foreground/90">{result.potentialRisks}</p>
-                </div>
-              </div>
-            )}
-          </CardFooter>
-        </form>
-      </Form>
-    </Card>
+    <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5, delay: 0.2 }}
+    >
+        <Card className="bg-card">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <BrainCircuit className="w-6 h-6" />
+              Predictive Analysis
+            </CardTitle>
+            <CardDescription>
+              Use AI to forecast inventory needs based on historical data.
+            </CardDescription>
+          </CardHeader>
+          <Form {...form}>
+            <form onSubmit={form.handleSubmit(onSubmit)}>
+              <CardContent className="space-y-4">
+                <FormField
+                  control={form.control}
+                  name="historicalData"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Historical Data</FormLabel>
+                      <FormControl>
+                        <Textarea readOnly placeholder="e.g., Last week sales..." {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="dayOfWeek"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Day of Week</FormLabel>
+                      <Select onValueChange={field.onChange} defaultValue={field.value}>
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Select a day to forecast" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          {["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"].map(day => (
+                            <SelectItem key={day} value={day}>{day}</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="salesPatterns"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Sales Patterns</FormLabel>
+                      <FormControl>
+                        <Textarea readOnly placeholder="e.g., Higher traffic on weekends..." {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </CardContent>
+              <CardFooter className="flex-col items-start gap-4">
+                <Button type="submit" disabled={isLoading} className="w-full">
+                  {isLoading ? <Loader2 className="animate-spin" /> : "Generate Forecast"}
+                </Button>
+                {isLoading && (
+                  <div className="w-full space-y-4">
+                    <Skeleton className="h-8 w-1/3" />
+                    <Skeleton className="h-6 w-full" />
+                    <Skeleton className="h-8 w-1/3 mt-2" />
+                    <Skeleton className="h-6 w-full" />
+                  </div>
+                )}
+                {error && (
+                     <Alert variant="destructive">
+                        <AlertCircle className="h-4 w-4" />
+                        <AlertTitle>Error</AlertTitle>
+                        <AlertDescription>{error}</AlertDescription>
+                    </Alert>
+                )}
+                {result && (
+                  <div className="w-full space-y-4 text-sm">
+                    <div>
+                      <h4 className="font-semibold text-primary">Predicted Needs</h4>
+                      <p className="mt-1 text-foreground/90">{result.predictedNeeds}</p>
+                    </div>
+                    <div>
+                      <h4 className="font-semibold text-amber-600 dark:text-amber-500">Potential Risks</h4>
+                      <p className="mt-1 text-foreground/90">{result.potentialRisks}</p>
+                    </div>
+                  </div>
+                )}
+              </CardFooter>
+            </form>
+          </Form>
+        </Card>
+    </motion.div>
   );
 }

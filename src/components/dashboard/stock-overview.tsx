@@ -1,3 +1,4 @@
+
 "use client";
 
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, ResponsiveContainer } from 'recharts';
@@ -10,11 +11,13 @@ import type { InventoryItem } from '@/lib/types';
 import { collection, onSnapshot, doc } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import { Skeleton } from '../ui/skeleton';
+import { useAuth } from '../auth/auth-provider';
 
 export function StockOverview() {
   const [inventory, setInventory] = useState<InventoryItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [overstockMultiplier, setOverstockMultiplier] = useState(3);
+  const { user } = useAuth();
 
   useEffect(() => {
     const unsubInventory = onSnapshot(collection(db, "inventory"), (snapshot) => {
@@ -89,7 +92,7 @@ export function StockOverview() {
         className="space-y-6"
     >
         <motion.div variants={itemVariants}>
-            <h1 className="text-3xl font-bold tracking-tight">Welcome back, Arturo</h1>
+            <h1 className="text-3xl font-bold tracking-tight">Welcome back, {user?.name.split(' ')[0]}</h1>
             <p className="text-muted-foreground">Here's your inventory at a glance.</p>
         </motion.div>
 

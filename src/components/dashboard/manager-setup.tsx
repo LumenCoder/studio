@@ -50,6 +50,7 @@ import { db } from "@/lib/firebase";
 import { collection, doc, onSnapshot, deleteDoc, setDoc, query, where, getDocs, updateDoc } from "firebase/firestore";
 import { UserEditModal } from "./user-edit-modal";
 import { useAuth } from "../auth/auth-provider";
+import { motion } from "framer-motion";
 
 const budgetSchema = z.object({
   budget: z.coerce.number().positive("Budget must be positive."),
@@ -182,6 +183,11 @@ export function ManagerSetup() {
     }
   };
 
+  const cardVariants = {
+    hidden: { opacity: 0, y: 20 },
+    visible: { opacity: 1, y: 0, transition: { duration: 0.5 } },
+  };
+
   return (
     <>
       {selectedUser && (
@@ -192,92 +198,100 @@ export function ManagerSetup() {
           onUpdateUser={handleUpdateUser}
         />
       )}
-      <div className="grid gap-6 lg:grid-cols-2">
-        <Card>
-          <CardHeader>
-            <CardTitle>Global Settings</CardTitle>
-            <CardDescription>Manage budget and inventory thresholds.</CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-6">
-            <Form {...budgetForm}>
-              <form onSubmit={budgetForm.handleSubmit(handleUpdateBudget)} className="space-y-4">
-                <div className="flex items-center gap-2">
-                  <DollarSign className="w-5 h-5 text-muted-foreground" />
-                  <h3 className="font-semibold">Budget Control</h3>
-                </div>
-                <FormField
-                  control={budgetForm.control}
-                  name="budget"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Weekly Budget ($)</FormLabel>
-                      <FormControl>
-                        <Input type="number" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <div className="flex items-center gap-2 pt-4">
-                  <BarChart className="w-5 h-5 text-muted-foreground" />
-                  <h3 className="font-semibold">Inventory Thresholds</h3>
-                </div>
-                <FormField
-                  control={budgetForm.control}
-                  name="overstockThreshold"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Overstock Multiplier</FormLabel>
-                      <FormControl>
-                        <Input type="number" step="0.1" {...field} />
-                      </FormControl>
-                      <p className="text-xs text-muted-foreground pt-1">An item is "Overstock" if its stock is this many times its threshold (e.g., 3 means 3x).</p>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <Button type="submit" disabled={budgetForm.formState.isSubmitting}>
-                  {budgetForm.formState.isSubmitting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Save className="mr-2 h-4 w-4" />}
-                  Save Settings
-                </Button>
-              </form>
-            </Form>
-          </CardContent>
-        </Card>
-        
-        <Card>
-          <CardHeader>
-              <CardTitle>Shipment Calculator</CardTitle>
-              <CardDescription>Generate a list of items needed for the next shipment.</CardDescription>
-          </CardHeader>
-          <CardContent>
-              {inventory.length > 0 ? (
-                <>
-                  <Button onClick={handleCalculateShipment} disabled={isCalculating} className="w-full">
-                      {isCalculating ? (
-                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      ) : (
-                          <FileSpreadsheet className="mr-2 h-4 w-4" />
-                      )}
-                      Calculate New Shipment
+      <motion.div 
+        initial="hidden"
+        animate="visible"
+        variants={{ visible: { transition: { staggerChildren: 0.2 } } }}
+        className="grid gap-6 lg:grid-cols-2">
+        <motion.div variants={cardVariants}>
+          <Card>
+            <CardHeader>
+              <CardTitle>Global Settings</CardTitle>
+              <CardDescription>Manage budget and inventory thresholds.</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              <Form {...budgetForm}>
+                <form onSubmit={budgetForm.handleSubmit(handleUpdateBudget)} className="space-y-4">
+                  <div className="flex items-center gap-2">
+                    <DollarSign className="w-5 h-5 text-muted-foreground" />
+                    <h3 className="font-semibold">Budget Control</h3>
+                  </div>
+                  <FormField
+                    control={budgetForm.control}
+                    name="budget"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Weekly Budget ($)</FormLabel>
+                        <FormControl>
+                          <Input type="number" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <div className="flex items-center gap-2 pt-4">
+                    <BarChart className="w-5 h-5 text-muted-foreground" />
+                    <h3 className="font-semibold">Inventory Thresholds</h3>
+                  </div>
+                  <FormField
+                    control={budgetForm.control}
+                    name="overstockThreshold"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Overstock Multiplier</FormLabel>
+                        <FormControl>
+                          <Input type="number" step="0.1" {...field} />
+                        </FormControl>
+                        <p className="text-xs text-muted-foreground pt-1">An item is "Overstock" if its stock is this many times its threshold (e.g., 3 means 3x).</p>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <Button type="submit" disabled={budgetForm.formState.isSubmitting}>
+                    {budgetForm.formState.isSubmitting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Save className="mr-2 h-4 w-4" />}
+                    Save Settings
                   </Button>
-                  {shipmentResult && (
-                      <div className="mt-4 space-y-2 text-sm font-mono p-4 bg-muted rounded-md max-h-96 overflow-y-auto">
-                          <h4 className="font-sans font-bold text-base">Shipment Needs:</h4>
-                          <pre className="whitespace-pre-wrap">{shipmentResult.shipmentList}</pre>
-                      </div>
-                  )}
-                </>
-              ) : (
-                <div className="flex flex-col items-center justify-center text-center text-muted-foreground p-8 border-2 border-dashed rounded-lg">
-                  <Info className="w-10 h-10 mb-2" />
-                  <p>You need to add inventory items before you can calculate a shipment.</p>
-                </div>
-              )}
-          </CardContent>
-        </Card>
+                </form>
+              </Form>
+            </CardContent>
+          </Card>
+        </motion.div>
+        
+        <motion.div variants={cardVariants}>
+          <Card>
+            <CardHeader>
+                <CardTitle>Shipment Calculator</CardTitle>
+                <CardDescription>Generate a list of items needed for the next shipment.</CardDescription>
+            </CardHeader>
+            <CardContent>
+                {inventory.length > 0 ? (
+                  <>
+                    <Button onClick={handleCalculateShipment} disabled={isCalculating} className="w-full">
+                        {isCalculating ? (
+                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        ) : (
+                            <FileSpreadsheet className="mr-2 h-4 w-4" />
+                        )}
+                        Calculate New Shipment
+                    </Button>
+                    {shipmentResult && (
+                        <div className="mt-4 space-y-2 text-sm font-mono p-4 bg-muted rounded-md max-h-96 overflow-y-auto">
+                            <h4 className="font-sans font-bold text-base">Shipment Needs:</h4>
+                            <pre className="whitespace-pre-wrap">{shipmentResult.shipmentList}</pre>
+                        </div>
+                    )}
+                  </>
+                ) : (
+                  <div className="flex flex-col items-center justify-center text-center text-muted-foreground p-8 border-2 border-dashed rounded-lg">
+                    <Info className="w-10 h-10 mb-2" />
+                    <p>You need to add inventory items before you can calculate a shipment.</p>
+                  </div>
+                )}
+            </CardContent>
+          </Card>
+        </motion.div>
 
-        <div className="lg:col-span-2">
+        <motion.div variants={cardVariants} className="lg:col-span-2">
           <Card>
             <CardHeader>
               <CardTitle>User Administration</CardTitle>
@@ -334,8 +348,8 @@ export function ManagerSetup() {
               }
             </CardContent>
           </Card>
-        </div>
-      </div>
+        </motion.div>
+      </motion.div>
     </>
   );
 }
