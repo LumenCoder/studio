@@ -15,7 +15,9 @@ const getTitle = (pathname: string) => {
         case '/dashboard/users':
             return 'User Management';
         case '/dashboard/schedule':
-            return 'Schedule Management';
+            return 'Upload Schedule';
+        case '/dashboard/my-schedule':
+            return 'My Schedule';
         case '/dashboard/manager-setup':
             return 'Manager Set-up';
         case '/dashboard/settings':

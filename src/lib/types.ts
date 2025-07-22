@@ -1,4 +1,6 @@
+
 import { Timestamp } from "firebase/firestore";
+import type { ScheduleEntry } from "@/ai/flows/schedule-ocr";
 
 export type InventoryItem = {
   id: string;
@@ -25,3 +27,9 @@ export type User = {
   lastLogin: Timestamp;
   pin: string;
 };
+
+export type Schedule = {
+  id: string;
+  entries: ScheduleEntry[];
+  uploadedAt: Timestamp;
+}

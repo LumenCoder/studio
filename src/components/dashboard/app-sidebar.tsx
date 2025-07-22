@@ -22,6 +22,7 @@ import {
   LogOut,
   Briefcase,
   Calendar,
+  CalendarCheck,
 } from "lucide-react";
 import { usePathname } from "next/navigation";
 import Link from 'next/link';
@@ -46,11 +47,12 @@ export function AppSidebar() {
   const baseMenuItems = [
     { href: "/dashboard", label: "Overview", icon: LayoutDashboard },
     { href: "/dashboard/inventory", label: "Inventory", icon: Package },
+    { href: "/dashboard/my-schedule", label: "My Schedule", icon: CalendarCheck },
   ];
   
   const managerMenuItems = [
     { href: "/dashboard/users", label: "Users", icon: Users },
-    { href: "/dashboard/schedule", label: "Schedule", icon: Calendar },
+    { href: "/dashboard/schedule", label: "Upload Schedule", icon: Calendar },
   ]
 
   const adminMenuItems = [
@@ -66,8 +68,8 @@ export function AppSidebar() {
   } else if (user?.role === 'Admin Manager') {
      menuItems = [...baseMenuItems, ...managerMenuItems, ...adminMenuItems, settingsMenuItem];
   } else {
-    // Team Training only sees base items
-    menuItems = [...baseMenuItems];
+    // Team Training only sees base items + settings
+    menuItems = [...baseMenuItems, settingsMenuItem];
   }
 
   return (
