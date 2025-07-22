@@ -1,3 +1,4 @@
+
 "use client";
 
 import { AppSidebar } from '@/components/dashboard/app-sidebar';
@@ -7,6 +8,7 @@ import { useState, createContext, useContext, ReactNode, useEffect } from 'react
 import { motion, AnimatePresence } from 'framer-motion';
 import { TacoIcon } from '@/components/icons';
 import { usePathname, useRouter } from 'next/navigation';
+import { AuthProvider } from '@/components/auth/auth-provider';
 
 type AppContextType = {
   isNavigating: boolean;
@@ -30,12 +32,9 @@ const AppProvider = ({ children }: { children: ReactNode }) => {
   const router = useRouter();
 
   useEffect(() => {
-    // This effect runs when the page navigation is complete.
-    // It turns off the loading animation.
     if (isNavigating) {
       setIsNavigating(false);
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [pathname]);
 
   const navigateTo = (path: string) => {
@@ -59,6 +58,7 @@ export default function DashboardLayout({
   children: React.ReactNode;
 }) {
   return (
+   <AuthProvider>
     <AppProvider>
       <SidebarProvider>
         <div className="flex">
@@ -67,10 +67,11 @@ export default function DashboardLayout({
         </div>
       </SidebarProvider>
     </AppProvider>
+   </AuthProvider>
   );
 }
 
-function DashboardLayoutContent({ children }: { children: React.ReactNode }) {
+function DashboardLayoutContent({ children }: { children: React.Node }) {
   const { isNavigating } = useAppContext();
 
   return (

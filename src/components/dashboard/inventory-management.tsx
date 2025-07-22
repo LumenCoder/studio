@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, useMemo, useEffect } from "react";
@@ -15,6 +16,7 @@ import { RefreshCw, Loader2 } from "lucide-react";
 import { getStatus } from "@/lib/utils";
 import { InventoryUpdateModal } from "./inventory-update-modal";
 import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "../auth/auth-provider";
 
 const ALL_CATEGORIES = ['Protein', 'Dairy', 'Produce', 'Sauce', 'Tortilla', 'Packaging', 'Drink'];
 
@@ -27,6 +29,8 @@ export function InventoryManagement() {
   const [statusFilter, setStatusFilter] = useState("All");
   const [isUpdateModalOpen, setIsUpdateModalOpen] = useState(false);
   const { toast } = useToast();
+  const { user } = useAuth();
+  const isTrainee = user?.role === 'Team Training';
 
   useEffect(() => {
     const today = new Date().getDay();
@@ -48,7 +52,7 @@ export function InventoryManagement() {
     try {
       await addDoc(collection(db, "inventory"), newItem);
       await addDoc(collection(db, "auditLogs"), {
-        user: "Arturo", // Replace with actual user later
+        user: user?.name || 'System',
         action: "added_item",
         item: newItem.name,
         timestamp: serverTimestamp(),
@@ -79,7 +83,7 @@ export function InventoryManagement() {
        try {
         await batch.commit();
         await addDoc(collection(db, "auditLogs"), {
-            user: "Arturo", // Replace with actual user
+            user: user?.name || 'System',
             action: "updated_stock",
             item: `${updatedItemNames.length} items`,
             timestamp: serverTimestamp(),
@@ -117,6 +121,7 @@ export function InventoryManagement() {
         setIsOpen={setIsUpdateModalOpen}
         inventory={inventory}
         onUpdate={handleUpdateInventory}
+        isTrainee={isTrainee}
       />
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-7">
           <div className="col-span-1 lg:col-span-7 space-y-6">
@@ -131,7 +136,7 @@ export function InventoryManagement() {
                       size="sm" 
                       onClick={() => setIsUpdateModalOpen(true)}
                       aria-label="Update Inventory"
-                      disabled={loading}
+                      disabled={loading || isTrainee}
                     >
                       <RefreshCw className="mr-2 h-4 w-4" />
                       Update Inventory

@@ -1,3 +1,4 @@
+
 "use client";
 
 import {
@@ -24,24 +25,48 @@ import {
 import { usePathname } from "next/navigation";
 import Link from 'next/link';
 import { useAppContext } from "@/app/dashboard/layout";
+import { useAuth } from "../auth/auth-provider";
 
 export function AppSidebar() {
   const pathname = usePathname();
   const { navigateTo } = useAppContext();
+  const { user, logout } = useAuth();
 
   const handleNavigation = (href: string, e: React.MouseEvent<HTMLAnchorElement>) => {
     e.preventDefault();
     navigateTo(href);
   };
+  
+  const handleLogout = (e: React.MouseEvent<HTMLAnchorElement>) => {
+    e.preventDefault();
+    logout();
+  }
 
-
-  const menuItems = [
+  const baseMenuItems = [
     { href: "/dashboard", label: "Overview", icon: LayoutDashboard },
     { href: "/dashboard/inventory", label: "Inventory", icon: Package },
-    { href: "/dashboard/users", label: "Users", icon: Users },
-    { href: "/dashboard/manager-setup", label: "Manager Set-up", icon: Briefcase },
-    { href: "/dashboard/settings", label: "Settings", icon: Settings },
   ];
+  
+  const managerMenuItems = [
+    { href: "/dashboard/users", label: "Users", icon: Users },
+  ]
+
+  const adminMenuItems = [
+    { href: "/dashboard/manager-setup", label: "Manager Set-up", icon: Briefcase },
+  ]
+  
+  const settingsMenuItem = { href: "/dashboard/settings", label: "Settings", icon: Settings };
+
+  let menuItems = [...baseMenuItems];
+
+  if (user?.role === 'Manager') {
+    menuItems = [...baseMenuItems, ...managerMenuItems, settingsMenuItem];
+  } else if (user?.role === 'Admin Manager') {
+     menuItems = [...baseMenuItems, ...managerMenuItems, ...adminMenuItems, settingsMenuItem];
+  } else {
+    // Team Training only sees base items
+    menuItems = [...baseMenuItems];
+  }
 
   return (
     <Sidebar>
@@ -72,16 +97,16 @@ export function AppSidebar() {
         <div className="flex items-center gap-3 p-2 rounded-md hover:bg-sidebar-accent">
           <Avatar className="h-9 w-9">
             <AvatarImage src="https://placehold.co/40x40" alt="@admin" data-ai-hint="profile picture" />
-            <AvatarFallback>A</AvatarFallback>
+            <AvatarFallback>{user?.name.charAt(0) ?? 'U'}</AvatarFallback>
           </Avatar>
           <div className="flex flex-col text-sm group-data-[collapsible=icon]:hidden">
-            <span className="font-medium">Arturo</span>
-            <span className="text-xs text-muted-foreground">ID: 25</span>
+            <span className="font-medium">{user?.name}</span>
+            <span className="text-xs text-muted-foreground">ID: {user?.id}</span>
           </div>
         </div>
         <SidebarMenu>
           <SidebarMenuItem>
-            <SidebarMenuButton asChild tooltip="Log Out">
+            <SidebarMenuButton asChild tooltip="Log Out" onClick={handleLogout}>
               <Link href="/">
                 <LogOut />
                 <span>Log Out</span>

@@ -1,9 +1,14 @@
+
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { useState } from "react";
+import { useRouter } from "next/navigation";
+import { collection, query, where, getDocs, Timestamp } from "firebase/firestore";
+import { db } from "@/lib/firebase";
+import type { User } from "@/lib/types";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -28,14 +33,10 @@ const formSchema = z.object({
   }),
 });
 
-type LoginFormProps = {
-    onLoginStart: () => void;
-    onLoginResult: (success: boolean) => void;
-}
-
-export function LoginForm({ onLoginStart, onLoginResult }: LoginFormProps) {
+export function LoginForm() {
   const { toast } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const router = useRouter();
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -45,34 +46,72 @@ export function LoginForm({ onLoginStart, onLoginResult }: LoginFormProps) {
     },
   });
 
-  function onSubmit(values: z.infer<typeof formSchema>) {
+  async function onSubmit(values: z.infer<typeof formSchema>) {
     setIsSubmitting(true);
-    onLoginStart();
+    
+    try {
+      const q = query(collection(db, "users"), where("id", "==", values.userId));
+      const querySnapshot = await getDocs(q);
 
-    // Simulate network delay
-    setTimeout(() => {
-      try {
-        if (values.userId === "25" && values.pin === "2525") {
-          onLoginResult(true);
-        } else {
-          toast({
-            variant: "destructive",
-            title: "Login Failed",
-            description: "Invalid User ID or PIN.",
-          });
-          onLoginResult(false);
-        }
-      } catch (error) {
+      if (querySnapshot.empty) {
         toast({
           variant: "destructive",
-          title: "An Error Occurred",
-          description: "Something went wrong. Please try again.",
+          title: "Login Failed",
+          description: "Invalid User ID or PIN.",
         });
-        onLoginResult(false);
-      } finally {
         setIsSubmitting(false);
+        return;
       }
-    }, 1000);
+      
+      let user: User | null = null;
+      let docId: string | null = null;
+
+      querySnapshot.forEach((doc) => {
+          const data = doc.data();
+          if(data.pin === values.pin) {
+            user = {
+                docId: doc.id,
+                id: data.id,
+                name: data.name,
+                pin: data.pin,
+                role: data.role,
+                lastLogin: data.lastLogin
+            }
+            docId = doc.id;
+          }
+      });
+
+
+      if (user) {
+        // This is a workaround for serializing Firestore Timestamps
+        const serializableUser = {
+          ...user,
+          lastLogin: (user.lastLogin as Timestamp).toDate().toISOString(),
+        };
+        sessionStorage.setItem('taco-vision-user', JSON.stringify(serializableUser));
+
+        toast({
+          title: `Welcome, ${user.name}!`,
+          description: "You have successfully signed in.",
+        });
+        router.push("/dashboard");
+      } else {
+        toast({
+          variant: "destructive",
+          title: "Login Failed",
+          description: "Invalid User ID or PIN.",
+        });
+      }
+    } catch (error) {
+      console.error("Login error:", error);
+      toast({
+        variant: "destructive",
+        title: "An Error Occurred",
+        description: "Something went wrong. Please try again.",
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
   }
 
   return (

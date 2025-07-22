@@ -1,4 +1,5 @@
 
+
 "use client";
 
 import { useState, useEffect } from "react";
@@ -10,7 +11,7 @@ import type { User } from "@/lib/types";
 import { format } from "date-fns";
 import { motion } from "framer-motion";
 import { db } from "@/lib/firebase";
-import { collection, addDoc, onSnapshot, serverTimestamp, query, where, getDocs, doc, setDoc } from "firebase/firestore";
+import { collection, addDoc, onSnapshot, serverTimestamp, query, where, getDocs } from "firebase/firestore";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -19,6 +20,7 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { UserPlus, Users, Loader2 } from "lucide-react";
+import { useAuth } from "../auth/auth-provider";
 
 const userFormSchema = z.object({
   name: z.string().min(2, { message: "Name must be at least 2 characters." }),
@@ -38,6 +40,8 @@ export function UserManagement() {
   const [formattedUsers, setFormattedUsers] = useState<FormattedUser[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [isUsersLoading, setIsUsersLoading] = useState(true);
+  const { user: currentUser } = useAuth();
+  const canCreateAdmins = currentUser?.role === 'Admin Manager';
 
   useEffect(() => {
     setIsUsersLoading(true);
@@ -185,7 +189,7 @@ export function UserManagement() {
                         <SelectContent>
                           <SelectItem value="Team Training">Team Training</SelectItem>
                           <SelectItem value="Manager">Manager</SelectItem>
-                          <SelectItem value="Admin Manager">Admin Manager</SelectItem>
+                          {canCreateAdmins && <SelectItem value="Admin Manager">Admin Manager</SelectItem>}
                         </SelectContent>
                       </Select>
                       <FormMessage />

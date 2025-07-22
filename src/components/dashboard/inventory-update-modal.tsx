@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, useEffect, useMemo } from 'react';
@@ -24,9 +25,10 @@ type InventoryUpdateModalProps = {
   setIsOpen: (isOpen: boolean) => void;
   inventory: InventoryItem[];
   onUpdate: (updatedStocks: Record<string, number>) => void;
+  isTrainee: boolean;
 };
 
-export function InventoryUpdateModal({ isOpen, setIsOpen, inventory, onUpdate }: InventoryUpdateModalProps) {
+export function InventoryUpdateModal({ isOpen, setIsOpen, inventory, onUpdate, isTrainee }: InventoryUpdateModalProps) {
   const [updatedStocks, setUpdatedStocks] = useState<Record<string, number>>({});
 
   useEffect(() => {
@@ -87,13 +89,13 @@ export function InventoryUpdateModal({ isOpen, setIsOpen, inventory, onUpdate }:
                     exit={{ opacity: 0 }}
                     className={cn(
                       'p-4 rounded-lg border bg-card/50 transition-all',
-                      isLimited && 'border-red-500/50 shadow-md shadow-red-500/10'
+                      isLimited && 'border-primary/50 shadow-md shadow-primary/10'
                     )}
                   >
                     <div
                       className={cn(
                         'absolute inset-0 rounded-lg pointer-events-none',
-                         isLimited && 'animate-[pulse_4s_ease-in-out_infinite] border-2 border-red-500/80'
+                         isLimited && 'animate-[pulse_4s_ease-in-out_infinite] border-2 border-primary/80'
                       )}
                     />
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-center">
@@ -110,6 +112,7 @@ export function InventoryUpdateModal({ isOpen, setIsOpen, inventory, onUpdate }:
                             onChange={(e) => handleStockChange(item.id, e.target.value)}
                             className="w-24"
                             placeholder="Stock"
+                            readOnly={isTrainee}
                           />
                           <div className="flex-1">
                             <div className="flex justify-between items-center mb-1">
@@ -131,7 +134,7 @@ export function InventoryUpdateModal({ isOpen, setIsOpen, inventory, onUpdate }:
           <DialogClose asChild>
             <Button variant="outline">Cancel</Button>
           </DialogClose>
-          <Button onClick={handleSaveChanges}>Save Changes</Button>
+          <Button onClick={handleSaveChanges} disabled={isTrainee}>Save Changes</Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>

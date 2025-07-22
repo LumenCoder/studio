@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, useEffect } from "react";
@@ -48,6 +49,7 @@ import { runShipmentCalculation, type ShipmentCalculationOutput } from "@/lib/ac
 import { db } from "@/lib/firebase";
 import { collection, doc, onSnapshot, deleteDoc, setDoc, query, where, getDocs, updateDoc } from "firebase/firestore";
 import { UserEditModal } from "./user-edit-modal";
+import { useAuth } from "../auth/auth-provider";
 
 const budgetSchema = z.object({
   budget: z.coerce.number().positive("Budget must be positive."),
@@ -64,6 +66,7 @@ export function ManagerSetup() {
   const [shipmentResult, setShipmentResult] = useState<ShipmentCalculationOutput | null>(null);
   const [isCalculating, setIsCalculating] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
+  const { user: currentUser } = useAuth();
 
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [selectedUser, setSelectedUser] = useState<UserWithDocId | null>(null);
@@ -298,13 +301,13 @@ export function ManagerSetup() {
                         <TableCell>{user.name}</TableCell>
                         <TableCell>{user.role}</TableCell>
                         <TableCell className="text-right space-x-2">
-                            <Button variant="ghost" size="icon" onClick={() => handleEditUser(user)}>
+                            <Button variant="ghost" size="icon" onClick={() => handleEditUser(user)} disabled={user.role === 'Admin Manager' && user.id !== currentUser?.id}>
                               <Edit className="h-4 w-4" />
                               <span className="sr-only">Edit User</span>
                             </Button>
                             <AlertDialog>
                                 <AlertDialogTrigger asChild>
-                                    <Button variant="destructive" size="icon" disabled={user.role === 'Admin Manager' || user.id === '25'}>
+                                    <Button variant="destructive" size="icon" disabled={user.role === 'Admin Manager'}>
                                         <Trash2 className="h-4 w-4" />
                                     </Button>
                                 </AlertDialogTrigger>

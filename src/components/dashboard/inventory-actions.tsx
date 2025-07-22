@@ -1,3 +1,4 @@
+
 "use client";
 
 import { Button } from "@/components/ui/button";
@@ -30,6 +31,7 @@ import { Form, FormControl, FormField, FormItem, FormMessage } from "../ui/form"
 import { useToast } from "@/hooks/use-toast";
 import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover";
 import { RadioGroup, RadioGroupItem } from "../ui/radio-group";
+import { useAuth } from "../auth/auth-provider";
 
 const itemSchema = z.object({
   name: z.string().min(3, "Item name must be at least 3 characters."),
@@ -62,6 +64,9 @@ export function InventoryActions({
 }: InventoryActionsProps) {
   const [open, setOpen] = useState(false);
   const { toast } = useToast();
+  const { user } = useAuth();
+  const isTrainee = user?.role === 'Team Training';
+
   const form = useForm<z.infer<typeof itemSchema>>({
     resolver: zodResolver(itemSchema),
     defaultValues: {
@@ -134,7 +139,7 @@ export function InventoryActions({
 
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogTrigger asChild>
-          <Button size="sm" className="h-9">
+          <Button size="sm" className="h-9" disabled={isTrainee}>
             <PlusCircle className="mr-2 h-4 w-4" />
             Add Item
           </Button>
