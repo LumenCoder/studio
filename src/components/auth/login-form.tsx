@@ -6,7 +6,7 @@ import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { collection, query, where, getDocs, Timestamp } from "firebase/firestore";
+import { collection, query, where, getDocs, Timestamp, doc, updateDoc } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import type { User } from "@/lib/types";
 
@@ -82,11 +82,16 @@ export function LoginForm() {
       });
 
 
-      if (user) {
-        // This is a workaround for serializing Firestore Timestamps
+      if (user && docId) {
+        // Update lastLogin timestamp
+        const userRef = doc(db, "users", docId);
+        await updateDoc(userRef, { lastLogin: Timestamp.now() });
+
         const serializableUser = {
           ...user,
-          lastLogin: (user.lastLogin as Timestamp).toDate().toISOString(),
+          lastLogin: user.lastLogin instanceof Timestamp 
+            ? user.lastLogin.toDate().toISOString() 
+            : new Date().toISOString(),
         };
         sessionStorage.setItem('taco-vision-user', JSON.stringify(serializableUser));
 
