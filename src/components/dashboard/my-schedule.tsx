@@ -12,6 +12,7 @@ import { motion } from 'framer-motion';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '../ui/accordion';
 import { Badge } from '@/components/ui/badge';
 import { getStartOfWeek, parseTime } from '@/lib/utils';
+import { format } from 'date-fns';
 
 const DAYS_OF_WEEK_ORDER = ['Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday', 'Monday', 'Tuesday'];
 
@@ -19,13 +20,20 @@ export function MySchedule() {
   const { user } = useAuth();
   const [schedule, setSchedule] = useState<Schedule | null>(null);
   const [loading, setLoading] = useState(true);
+  const [weekId, setWeekId] = useState('');
+  const [displayDate, setDisplayDate] = useState('');
 
   useEffect(() => {
     const today = new Date();
     const startOfWeek = getStartOfWeek(today, 3); // 3 for Wednesday
-    const weekId = `week-${startOfWeek.getFullYear()}-${(startOfWeek.getMonth() + 1).toString().padStart(2, '0')}-${startOfWeek.getDate().toString().padStart(2, '0')}`;
+    const endOfWeek = new Date(startOfWeek);
+    endOfWeek.setDate(startOfWeek.getDate() + 6);
     
-    const scheduleDocRef = doc(db, "schedules", weekId);
+    const formattedWeekId = `week-${startOfWeek.getFullYear()}-${(startOfWeek.getMonth() + 1).toString().padStart(2, '0')}-${startOfWeek.getDate().toString().padStart(2, '0')}`;
+    setWeekId(formattedWeekId);
+    setDisplayDate(format(startOfWeek, "MMMM d, yyyy"));
+    
+    const scheduleDocRef = doc(db, "schedules", formattedWeekId);
     
     const unsubscribe = onSnapshot(scheduleDocRef, (docSnap) => {
       if (docSnap.exists()) {
@@ -103,6 +111,7 @@ export function MySchedule() {
        <Card>
         <CardHeader>
           <CardTitle>No Schedule Found</CardTitle>
+          <CardDescription>For the week of {displayDate}</CardDescription>
         </CardHeader>
         <CardContent className="flex flex-col items-center justify-center text-center text-muted-foreground p-8">
             <CalendarX2 className="w-16 h-16 mb-4" />
@@ -124,7 +133,7 @@ export function MySchedule() {
         <Card>
           <CardHeader>
             <CardTitle>Your Upcoming Shifts</CardTitle>
-            <CardDescription>Here are your scheduled shifts for this week.</CardDescription>
+            <CardDescription>For the week of {displayDate}</CardDescription>
           </CardHeader>
           <CardContent>
             {myShifts.length > 0 ? (
@@ -152,7 +161,7 @@ export function MySchedule() {
         <Card>
             <CardHeader>
                 <CardTitle>Team Schedule</CardTitle>
-                <CardDescription>Daily breakdown of who is working.</CardDescription>
+                <CardDescription>Daily breakdown for the week of {displayDate}</CardDescription>
             </CardHeader>
             <CardContent>
                 <Accordion type="single" collapsible className="w-full" defaultValue='Wednesday'>
