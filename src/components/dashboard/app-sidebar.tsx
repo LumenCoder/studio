@@ -76,7 +76,7 @@ export function AppSidebar() {
     <Sidebar>
       <SidebarHeader>
         <TacoIcon className="w-8 h-8 text-primary" />
-        <SidebarTitle>Taco Vision</SidebarTitle>
+        <SidebarTitle>Tacitobell V1.28</SidebarTitle>
       </SidebarHeader>
       <SidebarContent>
         <SidebarMenu>
