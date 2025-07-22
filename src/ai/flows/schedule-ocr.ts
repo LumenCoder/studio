@@ -25,7 +25,7 @@ const ScheduleEntrySchema = z.object({
     userId: z.string().describe("The user ID of the employee. Should be parsed as a string to preserve leading zeros, but presented as a number."),
     dayOfWeek: z.string().describe("The day of the week for the shift (e.g., Monday, Tuesday)."),
     timeRange: z.string().describe("The start and end time of the shift (e.g., '9:00 AM - 5:00 PM')."),
-    hoursWorked: z.string().describe("The total hours for the scheduled shift. This should be calculated as the duration between the start and end times."),
+    hoursWorked: z.string().describe("The total hours for the scheduled shift. This must be calculated as the duration between the start and end times. For example, '8:00 AM - 4:30 PM' is '8.5', and '10:00 PM - 6:00 AM' is '8'."),
 });
 export type ScheduleEntry = z.infer<typeof ScheduleEntrySchema>;
 
