@@ -1,41 +1,72 @@
 
 "use client";
 
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, ResponsiveContainer } from 'recharts';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useMemo } from 'react';
 import { motion } from 'framer-motion';
-import { Package, TrendingDown, TrendingUp, Loader2, Info } from 'lucide-react';
+import { Package, TrendingDown, TrendingUp, Loader2, Info, CalendarCheck, Clock, CalendarX } from 'lucide-react';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
-import type { InventoryItem } from '@/lib/types';
-import { collection, onSnapshot, doc } from 'firebase/firestore';
+import type { InventoryItem, Schedule, ScheduleEntry } from '@/lib/types';
+import { collection, onSnapshot, doc, query, orderBy, limit } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import { Skeleton } from '../ui/skeleton';
 import { useAuth } from '../auth/auth-provider';
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '../ui/accordion';
+import { Progress } from '../ui/progress';
+
+const DAYS_OF_WEEK = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
 
 export function StockOverview() {
   const [inventory, setInventory] = useState<InventoryItem[]>([]);
+  const [schedule, setSchedule] = useState<Schedule | null>(null);
   const [loading, setLoading] = useState(true);
   const [overstockMultiplier, setOverstockMultiplier] = useState(3);
   const { user } = useAuth();
 
   useEffect(() => {
-    const unsubInventory = onSnapshot(collection(db, "inventory"), (snapshot) => {
+    let inventoryUnsub: () => void;
+    let settingsUnsub: () => void;
+    let scheduleUnsub: () => void;
+    
+    let loadedCount = 0;
+    const checkAllLoaded = () => {
+        loadedCount++;
+        if(loadedCount === 3) {
+            setLoading(false);
+        }
+    }
+
+    inventoryUnsub = onSnapshot(collection(db, "inventory"), (snapshot) => {
       const inventoryData = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as InventoryItem));
       setInventory(inventoryData);
-      setLoading(false);
+      checkAllLoaded();
     });
 
-    const unsubSettings = onSnapshot(doc(db, "settings", "budget"), (docSnap) => {
+    settingsUnsub = onSnapshot(doc(db, "settings", "budget"), (docSnap) => {
         if (docSnap.exists()) {
             const data = docSnap.data();
             setOverstockMultiplier(data.overstockThreshold || 3);
         }
+        checkAllLoaded();
+    });
+
+    const q = query(collection(db, "schedules"), orderBy("uploadedAt", "desc"), limit(1));
+    scheduleUnsub = onSnapshot(q, (querySnapshot) => {
+      if (!querySnapshot.empty) {
+        const latestSchedule = querySnapshot.docs[0].data() as Schedule;
+        latestSchedule.id = querySnapshot.docs[0].id;
+        setSchedule(latestSchedule);
+      }
+      checkAllLoaded();
+    }, (error) => {
+      console.error("Error fetching schedule: ", error);
+      checkAllLoaded();
     });
 
     return () => {
-        unsubInventory();
-        unsubSettings();
+        inventoryUnsub();
+        settingsUnsub();
+        scheduleUnsub();
     };
   }, []);
 
@@ -43,11 +74,18 @@ export function StockOverview() {
   const lowStockItems = inventory.filter(item => item.stock < item.threshold);
   const overStockItems = inventory.filter(item => item.threshold > 0 && item.stock > item.threshold * overstockMultiplier).length;
 
-  const chartData = inventory.map(item => ({
-    name: item.name,
-    stock: item.stock,
-    threshold: item.threshold,
-  })).slice(0, 7);
+  const todayShift = useMemo(() => {
+    if (!schedule || !user) return null;
+    const today = DAYS_OF_WEEK[new Date().getDay()];
+    return schedule.entries.find(entry => entry.userId === user.id && entry.dayOfWeek === today) || null;
+  }, [schedule, user]);
+
+  const inventoryByCategory = useMemo(() => {
+    return inventory.reduce((acc, item) => {
+      (acc[item.category] = acc[item.category] || []).push(item);
+      return acc;
+    }, {} as Record<string, InventoryItem[]>);
+  }, [inventory]);
 
   const containerVariants = {
     hidden: { opacity: 0 },
@@ -93,17 +131,39 @@ export function StockOverview() {
     >
         <motion.div variants={itemVariants}>
             <h1 className="text-3xl font-bold tracking-tight">Welcome back, {user?.name.split(' ')[0]}</h1>
-            <p className="text-muted-foreground">Here's your inventory at a glance.</p>
+            <p className="text-muted-foreground">Here's your inventory and schedule at a glance.</p>
         </motion.div>
 
         {loading ? (
-            <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+            <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
+                <StatCardSkeleton/>
                 <StatCardSkeleton/>
                 <StatCardSkeleton/>
                 <StatCardSkeleton/>
             </div>
         ) : (
-        <motion.div variants={containerVariants} className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+        <motion.div variants={containerVariants} className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
+            <motion.div variants={itemVariants}>
+                <Card>
+                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                        <CardTitle className="text-sm font-medium">Today's Shift</CardTitle>
+                        {todayShift ? <CalendarCheck className="h-4 w-4 text-primary" /> : <CalendarX className="h-4 w-4 text-muted-foreground" />}
+                    </CardHeader>
+                    <CardContent>
+                    {todayShift ? (
+                        <>
+                            <div className="text-2xl font-bold">{todayShift.timeRange}</div>
+                            <p className="text-xs text-muted-foreground">({todayShift.hoursWorked} hours)</p>
+                        </>
+                    ) : (
+                        <>
+                             <div className="text-2xl font-bold">Off Today</div>
+                             <p className="text-xs text-muted-foreground">No shifts scheduled.</p>
+                        </>
+                    )}
+                    </CardContent>
+                </Card>
+            </motion.div>
             <motion.div variants={itemVariants}>
             <Card>
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
@@ -166,7 +226,7 @@ export function StockOverview() {
             <Card>
             <CardHeader>
                 <CardTitle>Current Stock Levels</CardTitle>
-                <CardDescription>A snapshot of your current inventory items.</CardDescription>
+                <CardDescription>A snapshot of your current inventory items by category.</CardDescription>
             </CardHeader>
             <CardContent>
                 {loading ? (
@@ -174,23 +234,31 @@ export function StockOverview() {
                       <Loader2 className="h-8 w-8 animate-spin" />
                     </div>
                 ) : inventory.length > 0 ? (
-                    <ResponsiveContainer width="100%" height={350}>
-                        <BarChart data={chartData}>
-                            <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-                            <XAxis dataKey="name" stroke="hsl(var(--muted-foreground))" fontSize={12} tickLine={false} axisLine={false} />
-                            <YAxis stroke="hsl(var(--muted-foreground))" fontSize={12} tickLine={false} axisLine={false} />
-                            <RechartsTooltip
-                                cursor={{ fill: 'hsl(var(--accent))' }}
-                                contentStyle={{
-                                    background: 'hsl(var(--background))',
-                                    border: '1px solid hsl(var(--border))',
-                                    borderRadius: 'var(--radius)',
-                                }}
-                            />
-                            <Bar dataKey="stock" fill="hsl(var(--primary))" radius={[4, 4, 0, 0]} />
-                            <Bar dataKey="threshold" fill="hsl(var(--destructive))" radius={[4, 4, 0, 0]} />
-                        </BarChart>
-                    </ResponsiveContainer>
+                    <Accordion type="single" collapsible className="w-full">
+                       {Object.entries(inventoryByCategory).sort(([catA], [catB]) => catA.localeCompare(catB)).map(([category, items]) => (
+                            <AccordionItem value={category} key={category}>
+                                <AccordionTrigger>{category}</AccordionTrigger>
+                                <AccordionContent>
+                                    <ul className='space-y-4 pt-2'>
+                                    {items.map(item => {
+                                        const percentage = item.threshold > 0 ? (item.stock / item.threshold) * 100 : 0;
+                                        return (
+                                            <li key={item.id} className="space-y-2">
+                                                 <div className="flex justify-between items-center text-sm">
+                                                    <span className="font-medium">{item.name}</span>
+                                                    <span className="text-muted-foreground">
+                                                        {item.stock} / <span className="text-xs"> {item.threshold}</span>
+                                                    </span>
+                                                 </div>
+                                                 <Progress value={percentage} className="h-2"/>
+                                            </li>
+                                        )
+                                    })}
+                                    </ul>
+                                </AccordionContent>
+                            </AccordionItem>
+                       ))}
+                    </Accordion>
                 ) : (
                     <div className="flex flex-col items-center justify-center h-[350px] text-center bg-muted/50 rounded-lg">
                         <Info className="w-12 h-12 text-muted-foreground mb-4" />
