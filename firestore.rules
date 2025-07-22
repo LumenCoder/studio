@@ -1,14 +1,13 @@
-rules_version = '2';
+
 rules_version = '2';
 
 service cloud.firestore {
   match /databases/{database}/documents {
-    
-    // Allow public read access to most collections, but restrict writes.
-    // In a production app, you would have more granular rules.
+    // Allow anyone to read or write to the database.
+    // This is for development purposes only.
+    // For production, you should secure your data.
     match /{document=**} {
-      allow read: if true;
-      allow write: if true; // For this demo, allow all writes. Be more restrictive in production.
+      allow read, write: if true;
     }
   }
 }
