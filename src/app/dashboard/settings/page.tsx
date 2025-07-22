@@ -50,7 +50,12 @@ export default function SettingsPage() {
 
   const handleUpdatePin = async (values: z.infer<typeof pinSchema>) => {
     setIsSubmitting(true);
-    if (values.currentPin !== user?.pin) {
+    if (!user) {
+        toast({ variant: "destructive", title: "Error", description: "You are not logged in." });
+        setIsSubmitting(false);
+        return;
+    }
+    if (values.currentPin !== user.pin) {
       toast({
         variant: "destructive",
         title: "Error",
@@ -181,8 +186,7 @@ export default function SettingsPage() {
         </Card>
         </motion.div>
 
-      </div>
+      </motion.div>
     </div>
   );
 }
-
