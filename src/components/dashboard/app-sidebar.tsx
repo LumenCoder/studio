@@ -21,6 +21,7 @@ import {
   Settings,
   LogOut,
   Briefcase,
+  Calendar,
 } from "lucide-react";
 import { usePathname } from "next/navigation";
 import Link from 'next/link';
@@ -49,6 +50,7 @@ export function AppSidebar() {
   
   const managerMenuItems = [
     { href: "/dashboard/users", label: "Users", icon: Users },
+    { href: "/dashboard/schedule", label: "Schedule", icon: Calendar },
   ]
 
   const adminMenuItems = [

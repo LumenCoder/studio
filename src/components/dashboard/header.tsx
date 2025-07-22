@@ -1,3 +1,4 @@
+
 "use client";
 
 import { SidebarTrigger } from "@/components/ui/sidebar";
@@ -13,6 +14,8 @@ const getTitle = (pathname: string) => {
             return 'Inventory Management';
         case '/dashboard/users':
             return 'User Management';
+        case '/dashboard/schedule':
+            return 'Schedule Management';
         case '/dashboard/manager-setup':
             return 'Manager Set-up';
         case '/dashboard/settings':

@@ -1,3 +1,4 @@
+
 "use server";
 
 import {
@@ -8,6 +9,11 @@ import {
   calculateShipment,
   type ShipmentCalculationInput,
 } from "@/ai/flows/shipment-calculation";
+import {
+    extractSchedule,
+    type ScheduleOcrInput,
+    type ScheduleEntry
+} from "@/ai/flows/schedule-ocr";
 
 
 export async function runForecast(input: ForecastInventoryInput) {
@@ -29,3 +35,15 @@ export async function runShipmentCalculation(input: ShipmentCalculationInput) {
     return { error: "Failed to calculate shipment. Please try again." };
   }
 }
+
+export async function runScheduleOcr(input: ScheduleOcrInput) {
+    try {
+        const result = await extractSchedule(input);
+        return result;
+    } catch (error) {
+        console.error("Error in schedule OCR action:", error);
+        return { error: "Failed to extract schedule from PDF. Please try again." };
+    }
+}
+
+export type { ScheduleEntry };
