@@ -42,17 +42,20 @@ const prompt = ai.definePrompt({
   name: 'scheduleOcrPrompt',
   input: {schema: ScheduleOcrInputSchema},
   output: {schema: ScheduleOcrOutputSchema},
-  prompt: `You are an expert data entry assistant. Your task is to analyze the provided PDF schedule and extract the shift details for each employee.
+  prompt: `You are a highly intelligent data extraction assistant. Your primary task is to meticulously analyze the provided PDF document, which contains an employee work schedule. Your goal is to extract every shift detail for every employee listed and structure it into a clean, usable format.
 
-The user ID should be extracted as the number you see. For example, if you see "0025", extract "25". If you see "0020", extract "20".
+**Key Extraction Rules:**
+1.  **User ID:** Extract the User ID exactly as it appears. If you see "0025", extract "25". If you see "0020", extract "20". Treat it as a numerical value.
+2.  **Date and Time:** From the date/time column(s), you must derive two distinct pieces of information for each shift:
+    *   The **Day of the Week** (e.g., "Monday", "Tuesday", "Wednesday").
+    *   The complete **Time Range** of the shift (e.g., "8:00 AM - 4:00 PM", "10:00 PM - 6:00 AM").
+3.  **Thoroughness:** Scan the entire document from top to bottom. Do not miss any entries. Pay close attention to formatting, as some schedules might have varied layouts.
+4.  **Output Structure:** For each shift you identify, create an entry with the following fields: "Name", "User ID", "Day of Week", "Time Range", and "Hours Worked".
 
-From the date/time column, you must extract two separate pieces of information:
-1. The day of the week (e.g., "Monday", "Tuesday").
-2. The time range of the shift (e.g., "8:00 AM - 4:00 PM").
+Your final output should be a complete and accurate list of all schedule entries found in the document.
 
-Carefully scan the entire document and create a structured list of all shifts. The required columns are: "Name", "User ID", "Day of Week", "Time Range", and "Hours Worked".
-
-Document: {{media url=pdfDataUri}}`,
+**Document to Analyze:**
+{{media url=pdfDataUri}}`,
 });
 
 const extractScheduleFlow = ai.defineFlow(
@@ -63,6 +66,9 @@ const extractScheduleFlow = ai.defineFlow(
   },
   async input => {
     const {output} = await prompt(input);
-    return output!;
+    if (!output || !output.schedule || output.schedule.length === 0) {
+        throw new Error("The model failed to extract any schedule entries. The document might be in an unrecognized format or empty. Please check the PDF and try again.");
+    }
+    return output;
   }
 );
