@@ -25,7 +25,7 @@ const ScheduleEntrySchema = z.object({
     userId: z.string().describe("The user ID of the employee. Should be parsed as a string to preserve leading zeros, but presented as a number."),
     dayOfWeek: z.string().describe("The day of the week for the shift (e.g., Monday, Tuesday)."),
     timeRange: z.string().describe("The start and end time of the shift (e.g., '9:00 AM - 5:00 PM')."),
-    hoursWorked: z.string().describe("The total hours for the scheduled shift."),
+    hoursWorked: z.string().describe("The total hours for the scheduled shift. This should be calculated as the duration between the start and end times."),
 });
 export type ScheduleEntry = z.infer<typeof ScheduleEntrySchema>;
 
@@ -49,8 +49,9 @@ const prompt = ai.definePrompt({
 2.  **Date and Time:** From the date/time column(s), you must derive two distinct pieces of information for each shift:
     *   The **Day of the Week** (e.g., "Monday", "Tuesday", "Wednesday").
     *   The complete **Time Range** of the shift (e.g., "8:00 AM - 4:00 PM", "10:00 PM - 6:00 AM").
-3.  **Thoroughness:** Scan the entire document from top to bottom. Do not miss any entries. Pay close attention to formatting, as some schedules might have varied layouts.
-4.  **Output Structure:** For each shift you identify, create an entry with the following fields: "Name", "User ID", "Day of Week", "Time Range", and "Hours Worked".
+3.  **Hours Worked:** This is the most critical calculation. You MUST calculate the total duration of the shift based on the Time Range. For example, a shift from "8:00 AM - 4:30 PM" is 8.5 hours. A shift from "10:00 PM - 6:00 AM" is 8 hours. The result must be a numerical string.
+4.  **Thoroughness:** Scan the entire document from top to bottom. Do not miss any entries. Pay close attention to formatting, as some schedules might have varied layouts.
+5.  **Output Structure:** For each shift you identify, create an entry with the following fields: "name", "userId", "dayOfWeek", "timeRange", and "hoursWorked".
 
 Your final output should be a complete and accurate list of all schedule entries found in the document.
 
