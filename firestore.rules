@@ -1,13 +1,28 @@
-
 rules_version = '2';
-
 service cloud.firestore {
   match /databases/{database}/documents {
-    // Allow anyone to read or write to the database.
-    // This is for development purposes only.
-    // For production, you should secure your data.
-    match /{document=**} {
-      allow read, write: if true;
+    // Allow anyone to create a new service request.
+    match /requests/{requestId} {
+      allow create: if true;
+      allow read, update, delete: if request.auth != null; 
+    }
+
+    // Allow anyone to create a document in the mail collection to trigger an email.
+    match /mail/{docId} {
+        allow create: if true;
+        allow read, update, delete: if request.auth != null;
+    }
+
+    // Allow public read for jobs, but only authenticated writes.
+    match /jobs/{jobId} {
+      allow read: if true;
+      allow write: if request.auth != null;
+    }
+
+    // Allow public read for invoices, but only authenticated writes.
+    match /invoices/{invoiceId} {
+      allow read: if true;
+      allow write: if request.auth != null;
     }
   }
 }
